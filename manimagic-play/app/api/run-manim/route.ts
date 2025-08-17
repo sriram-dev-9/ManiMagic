@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     // Extract class name from code (simple regex)
     const classMatch = code.match(/class\s+(\w+)\s*\(/);
-    const className = classMatch ? classMatch[1] : "SquareToCircle";
+    const className = classMatch ? classMatch[1] : "HelloManim";
 
     return new Promise((resolve) => {
       // Run Manim
@@ -38,11 +38,20 @@ export async function POST(request: NextRequest) {
       });
 
       let errorMsg = "";
+      let outputMsg = "";
+      
       proc.stderr.on("data", (data) => {
         errorMsg += data.toString();
       });
 
+      proc.stdout.on("data", (data) => {
+        outputMsg += data.toString();
+      });
+
       proc.on("close", (code) => {
+        console.log(`Manim process exited with code: ${code}`);
+        console.log(`stdout: ${outputMsg}`);
+        console.log(`stderr: ${errorMsg}`);
         // Find the output video file
         const mediaDir = path.join(tempDir, "videos");
         let videoPath = null;
@@ -72,8 +81,10 @@ export async function POST(request: NextRequest) {
         }
 
         if (code !== 0 || !videoPath || !fs.existsSync(videoPath)) {
+          const fullError = `Exit code: ${code}\nstdout: ${outputMsg}\nstderr: ${errorMsg}`;
+          console.error("Manim execution failed:", fullError);
           resolve(NextResponse.json(
-            { error: errorMsg || "Manim execution failed" }, 
+            { error: errorMsg || "Manim execution failed", details: fullError }, 
             { status: 500 }
           ));
           fs.rmSync(tempDir, { recursive: true, force: true });

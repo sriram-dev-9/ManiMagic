@@ -2,52 +2,20 @@
 import React, { useState, useEffect } from "react";
 import { FaPlay, FaDownload, FaExclamationCircle, FaExpand, FaCompress, FaCode } from "react-icons/fa";
 import CodeEditor from "./components/CodeEditor";
+import { validatePythonSyntax } from "./utils/pythonValidator";
 
 const DEFAULT_CODE = `from manim import *
-import numpy as np
 
-class ManimShowcase(Scene):
+class HelloManim(Scene):
     def construct(self):
-        # Create a colorful square with dynamic properties
-        square = Square(side_length=2)
-        square.set_fill(color=BLUE_E, opacity=0.7)
-        square.set_stroke(color=WHITE, width=4)
-
-        # Animate square creation and rotation
-        self.play(DrawBorderThenFill(square), run_time=2)
-        self.play(Rotate(square, angle=PI), run_time=1.5)
-
-        # Create a circle and morph the square into it
-        circle = Circle(radius=1.2)
-        circle.set_fill(color=PURPLE_C, opacity=0.6)
-        circle.set_stroke(color=YELLOW, width=4)
-
-        self.play(Transform(square, circle), run_time=1.5)
-        self.wait(0.5)
-
-        # Create orbiting dots with gradient colors
-        num_dots = 10
-        dots = VGroup(*[
-            Dot(point=1.5*RIGHT)
-            .rotate(angle, about_point=ORIGIN)
-            .set_color(interpolate_color(BLUE_A, TEAL, i/(num_dots-1)))
-            for i, angle in enumerate(np.linspace(0, 2*PI, num_dots, endpoint=False))
-        ])
+        # Create simple text
+        text = Text("Hello Manim!", font_size=48)
+        text.set_color(BLUE)
         
-        self.play(FadeIn(dots), run_time=1)
-        self.play(Rotate(dots, angle=2*PI), run_time=2)
-
-        # Create text without problematic weight parameter
-        text = Text("Manim Magic!", font_size=64)
-        text.set_color_by_gradient(RED, ORANGE, YELLOW)
-        text.set_stroke(BLACK, width=2)
-        
-        self.play(Write(text), run_time=1.5)
+        # Animate the text
+        self.play(Write(text), run_time=2)
         self.wait(1)
-        
-        # Clean exit
-        self.play(FadeOut(Group(text, dots, square)))
-        self.wait(0.5)
+        self.play(FadeOut(text), run_time=1)
 `;
 
 // Add some example templates for users
@@ -97,9 +65,11 @@ class FunctionPlot(Scene):
             y_length=4
         )
         
-        # Create function
+        # Create function without LaTeX
         func = axes.plot(lambda x: np.sin(x), color=BLUE)
-        func_label = axes.get_graph_label(func, label="y = \\sin(x)")
+        
+        # Use simple Text instead of LaTeX to avoid dependency
+        func_label = Text("y = sin(x)", font_size=24).next_to(func, UP)
         
         # Animate
         self.play(Create(axes))
@@ -108,7 +78,7 @@ class FunctionPlot(Scene):
         
         # Transform to cosine
         cos_func = axes.plot(lambda x: np.cos(x), color=RED)
-        cos_label = axes.get_graph_label(cos_func, label="y = \\cos(x)")
+        cos_label = Text("y = cos(x)", font_size=24).next_to(cos_func, UP)
         
         self.play(
             Transform(func, cos_func),
@@ -184,6 +154,59 @@ export default function ManiMagicPlayClient() {
     try {
       const errorObj = JSON.parse(errorText);
       const fullError = errorObj.error || errorText;
+      const errorDetails = errorObj.details || '';
+      
+      // Font weight error specific handling
+      if (fullError.includes('There is no Font Weight Called') || 
+          fullError.includes('KeyError: \'bold\'') ||
+          fullError.includes('unexpected keyword argument \'font_weight\'')) {
+        return {
+          type: 'Font Weight Error',
+          message: 'Font weight parameters are not supported. Remove weight or font_weight parameters entirely.',
+          details: 'In Manim v0.19+, font weight parameters are not supported. Use normal text without weight styling.'
+        };
+      }
+      
+      // LaTeX/FileNotFoundError specific handling
+      if (fullError.includes('FileNotFoundError') && fullError.includes('tex')) {
+        return {
+          type: 'LaTeX Error',
+          message: 'LaTeX is not installed. Use Text() instead of mathematical expressions to avoid LaTeX dependency.',
+          details: 'Install LaTeX (MikTeX/TeX Live) or use simple Text objects instead of mathematical notation.'
+        };
+      }
+      
+      // KeyError specific handling (general)
+      if (fullError.includes('KeyError')) {
+        const keyMatch = fullError.match(/KeyError: ['"](.*?)['"]/)
+        const keyName = keyMatch ? keyMatch[1] : 'unknown'
+        return {
+          type: 'KeyError',
+          message: `Key "${keyName}" not found. This might be due to Manim version compatibility or missing configuration.`,
+          details: errorDetails || fullError
+        };
+      }
+      
+      // AttributeError for missing methods/properties
+      if (fullError.includes('AttributeError')) {
+        const attrMatch = fullError.match(/AttributeError: .* has no attribute ['"](.*?)['"]/)
+        if (attrMatch) {
+          return {
+            type: 'Attribute Error',
+            message: `Property/method "${attrMatch[1]}" not found. This might be due to Manim version differences.`,
+            details: 'Check Manim documentation for the correct method name in your version.'
+          };
+        }
+      }
+      
+      // Import errors
+      if (fullError.includes('ImportError') || fullError.includes('ModuleNotFoundError')) {
+        return {
+          type: 'Import Error',
+          message: 'Required module not found. Make sure Manim and all dependencies are properly installed.',
+          details: errorDetails || fullError
+        };
+      }
       
       // Extract syntax errors
       const syntaxErrorMatch = fullError.match(/File ".*?", line (\d+)\s*(.*?)\s*SyntaxError: (.+)/);
@@ -192,7 +215,7 @@ export default function ManiMagicPlayClient() {
           type: 'Syntax Error',
           line: syntaxErrorMatch[1],
           message: syntaxErrorMatch[3],
-          details: syntaxErrorMatch[2]?.trim() || ''
+          details: syntaxErrorMatch[2]?.trim() || errorDetails
         };
       }
       
@@ -202,7 +225,7 @@ export default function ManiMagicPlayClient() {
         return {
           type: runtimeErrorMatch[1],
           message: runtimeErrorMatch[2],
-          details: ''
+          details: errorDetails
         };
       }
       
@@ -214,7 +237,7 @@ export default function ManiMagicPlayClient() {
         type: 'Error',
         line,
         message: fullError.length > 200 ? fullError.substring(0, 200) + '...' : fullError,
-        details: ''
+        details: errorDetails
       };
     } catch {
       return {
@@ -226,6 +249,18 @@ export default function ManiMagicPlayClient() {
   };
 
   const handleRun = async () => {
+    // First validate Python syntax
+    const syntaxValidation = validatePythonSyntax(code);
+    if (!syntaxValidation.isValid) {
+      setError({
+        type: 'Syntax Error',
+        line: syntaxValidation.line?.toString(),
+        message: syntaxValidation.error || 'Invalid Python syntax',
+        details: getSuggestion(syntaxValidation.error || '')
+      });
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setVideoUrl(null);
@@ -244,9 +279,55 @@ export default function ManiMagicPlayClient() {
       const blob = await res.blob();
       setVideoUrl(URL.createObjectURL(blob));
     } catch (e: any) {
-      setError(parseError(e.message));
+      setError({
+        type: 'Network Error',
+        message: 'Failed to connect to server. Please try again.',
+        details: ''
+      });
     }
     setLoading(false);
+  };
+
+  // Function to automatically fix common Manim compatibility issues
+  const autoFixCode = (code: string): string => {
+    let fixedCode = code;
+    
+    // Fix weight="bold" and font_weight=BOLD by removing them entirely
+    fixedCode = fixedCode.replace(/,?\s*weight=["']bold["']/g, '');
+    fixedCode = fixedCode.replace(/,?\s*font_weight=BOLD/g, '');
+    
+    // Clean up any double commas that might result from removal
+    fixedCode = fixedCode.replace(/,\s*,/g, ',');
+    fixedCode = fixedCode.replace(/\(\s*,/g, '(');
+    
+    // Fix common LaTeX graph labels
+    fixedCode = fixedCode.replace(
+      /axes\.get_graph_label\([^,]+,\s*label=["']([^"']*\\\w+[^"']*)["']\)/g,
+      (match, labelText) => {
+        // Convert LaTeX to simple text
+        const simpleText = labelText.replace(/\\sin/g, 'sin').replace(/\\cos/g, 'cos').replace(/\\/g, '');
+        return `Text("${simpleText}", font_size=24).next_to(func, UP)`;
+      }
+    );
+    
+    // Fix invalid escape sequences in strings
+    fixedCode = fixedCode.replace(/(?<!\\)\\([sc])(?!in|os)/g, '\\\\$1');
+    
+    return fixedCode;
+  };
+
+  // Function to provide suggestions for common issues
+  const getSuggestion = (errorMessage: string): string => {
+    if (errorMessage.includes('weight') || errorMessage.includes('font_weight')) {
+      return 'Remove weight="bold" or font_weight=BOLD parameters entirely. They are not supported in this Manim version.';
+    }
+    if (errorMessage.includes('LaTeX')) {
+      return 'Replace mathematical expressions with simple Text objects. Example: Text("y = sin(x)") instead of LaTeX.';
+    }
+    if (errorMessage.includes('escape sequence')) {
+      return 'Use raw strings like r"\\text" or double backslashes like "\\\\text".';
+    }
+    return '';
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -307,7 +388,7 @@ export default function ManiMagicPlayClient() {
   return (
     <>
       <div style={{
-        minHeight: "100vh",
+        height: "100vh",
         background: "#212129",
         color: "#f8fafc",
         display: "flex",
@@ -329,9 +410,7 @@ export default function ManiMagicPlayClient() {
               fontSize: 24, 
               margin: 0,
               letterSpacing: 0.5,
-              background: "linear-gradient(135deg, #60a5fa, #a78bfa)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent"
+              color: "#60a5fa"
             }}>
               ManiMagic Play
             </h1>
@@ -437,7 +516,8 @@ export default function ManiMagicPlayClient() {
           flex: 1,
           display: "flex",
           position: "relative",
-          minHeight: "calc(100vh - 120px)"
+          height: "calc(100vh - 120px)",
+          overflow: "hidden"
         }}>
           {/* Left Panel - Code Editor */}
           <div style={{
@@ -475,9 +555,7 @@ export default function ManiMagicPlayClient() {
                 onClick={handleRun}
                 disabled={loading}
                 style={{
-                  background: loading 
-                    ? "#40445a" 
-                    : "linear-gradient(135deg, #3b82f6, #8b5cf6)",
+                  background: loading ? "#40445a" : "#3b82f6",
                   color: "#fff",
                   border: "none",
                   borderRadius: 6,
@@ -501,7 +579,7 @@ export default function ManiMagicPlayClient() {
               <CodeEditor
                 value={code}
                 onChange={setCode}
-                height="calc(100vh - 160px)"
+                height="calc(100vh - 200px)"
               />
             </div>
           </div>
@@ -584,7 +662,7 @@ export default function ManiMagicPlayClient() {
                   href={videoUrl}
                   download="manim_animation.mp4"
                   style={{
-                    background: "linear-gradient(135deg, #10b981, #059669)",
+                    background: "#10b981",
                     color: "#fff",
                     borderRadius: 6,
                     padding: "6px 12px",
@@ -608,7 +686,9 @@ export default function ManiMagicPlayClient() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              position: "relative"
+              position: "relative",
+              height: "calc(100vh - 200px)",
+              overflow: "hidden"
             }}>
               {loading && (
                 <div style={{
@@ -673,18 +753,43 @@ export default function ManiMagicPlayClient() {
                         {error.message}
                       </div>
                       {error.details && (
-                        <pre style={{ 
-                          margin: 0, 
-                          fontSize: 11, 
-                          color: "#fecaca",
-                          whiteSpace: "pre-wrap",
-                          wordBreak: "break-word",
-                          fontFamily: 'JetBrains Mono, monospace',
-                          lineHeight: 1.4,
-                          opacity: 0.8
-                        }}>
-                          {error.details}
-                        </pre>
+                        <div>
+                          <pre style={{ 
+                            margin: "0 0 12px 0", 
+                            fontSize: 11, 
+                            color: "#fecaca",
+                            whiteSpace: "pre-wrap",
+                            wordBreak: "break-word",
+                            fontFamily: 'JetBrains Mono, monospace',
+                            lineHeight: 1.4,
+                            opacity: 0.8
+                          }}>
+                            {error.details}
+                          </pre>
+                          {(error.type === 'Font Weight Error' || error.type === 'Syntax Error') && (
+                            <button
+                              onClick={() => {
+                                const fixedCode = autoFixCode(code);
+                                if (fixedCode !== code) {
+                                  setCode(fixedCode);
+                                  setError(null);
+                                }
+                              }}
+                              style={{
+                                background: "#166534",
+                                border: "1px solid #22c55e",
+                                borderRadius: 4,
+                                color: "#bbf7d0",
+                                padding: "6px 12px",
+                                fontSize: 12,
+                                cursor: "pointer",
+                                fontWeight: 500
+                              }}
+                            >
+                              Auto Fix Code
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -699,7 +804,7 @@ export default function ManiMagicPlayClient() {
                   loop
                   style={{ 
                     maxWidth: "100%", 
-                    maxHeight: "100%",
+                    maxHeight: "calc(100vh - 250px)",
                     borderRadius: 8, 
                     boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
                     background: "#212129"
