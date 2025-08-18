@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { FaPlay, FaDownload, FaExclamationCircle, FaExpand, FaCompress, FaCode } from "react-icons/fa";
+import { FaPlay, FaDownload, FaExclamationCircle, FaExpand, FaCompress, FaCode, FaCopy, FaCheck, FaSpinner, FaUpload } from "react-icons/fa";
 import CodeEditor from "./components/CodeEditor";
 import { validatePythonSyntax } from "./utils/pythonValidator";
 
@@ -68,7 +68,9 @@ class FunctionPlot(Scene):
         # Create function without LaTeX
         func = axes.plot(lambda x: np.sin(x), color=BLUE)
         
-        # Use simple Text instead of LaTeX to avoid dependency
+        # Now that LaTeX is installed, you can use mathematical expressions:
+        # func_label = MathTex(r"y = \sin(x)").next_to(func, UP)
+        # For compatibility, we'll use Text() in this example:
         func_label = Text("y = sin(x)", font_size=24).next_to(func, UP)
         
         # Animate
@@ -78,6 +80,7 @@ class FunctionPlot(Scene):
         
         # Transform to cosine
         cos_func = axes.plot(lambda x: np.cos(x), color=RED)
+        # cos_label = MathTex(r"y = \cos(x)").next_to(cos_func, UP)  # With LaTeX
         cos_label = Text("y = cos(x)", font_size=24).next_to(cos_func, UP)
         
         self.play(
@@ -107,19 +110,139 @@ class SimpleAnimation(Scene):
         self.play(circle.animate.rotate(PI))
         
         self.wait(1)`
+  },
+  {
+    name: "Working with SVG Files",
+    description: "How to use uploaded SVG files in animations",
+    code: `from manim import *
+
+class SVGAnimation(Scene):
+    def construct(self):
+        # Example of working with SVG files
+        # First upload an SVG file using the Upload button
+        
+        # Create some basic shapes as demonstration
+        shapes = VGroup(
+            Circle(radius=0.5).set_color(BLUE),
+            Square(side_length=1).set_color(RED),
+            Triangle().set_color(GREEN)
+        ).arrange(RIGHT, buff=1)
+        
+        # Animate the shapes
+        self.play(Create(shapes))
+        self.wait(1)
+        
+        # When you upload an SVG file, use:
+        # svg_object = SVGMobject("your_file.svg")
+        # svg_object.scale(0.5)  # Adjust size
+        # self.play(Create(svg_object))
+        
+        # For now, show text instruction
+        instruction = Text(
+            "Upload an SVG file to see it here!",
+            font_size=24
+        ).move_to(DOWN * 2)
+        
+        self.play(Write(instruction))
+        self.wait(2)`
+  },
+  {
+    name: "Mathematical Expressions (LaTeX)",
+    description: "Using LaTeX for beautiful mathematical notation",
+    code: `from manim import *
+import numpy as np
+
+class MathExpressions(Scene):
+    def construct(self):
+        # Now that LaTeX is installed, you can use MathTex!
+        
+        # Beautiful mathematical expressions
+        title = MathTex(r"\\text{Mathematical Expressions with LaTeX}")
+        title.scale(1.2).to_edge(UP)
+        
+        # Quadratic formula
+        quadratic = MathTex(
+            r"x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}"
+        ).scale(1.5)
+        
+        # Integral
+        integral = MathTex(
+            r"\\int_{-\\infty}^{\\infty} e^{-x^2} dx = \\sqrt{\\pi}"
+        ).scale(1.2)
+        
+        # Arrange them
+        formulas = VGroup(quadratic, integral).arrange(DOWN, buff=1)
+        
+        # Animate
+        self.play(Write(title))
+        self.wait(1)
+        self.play(Write(quadratic))
+        self.wait(1)
+        self.play(Write(integral))
+        self.wait(2)
+        
+        # Transform to simpler expression
+        simple = MathTex(r"E = mc^2").scale(2)
+        self.play(Transform(formulas, simple))
+        self.wait(2)`
+  },
+  {
+    name: "Plugin Test (Simple)",
+    description: "Simple test of manim plugins (timeline and MF_Tools)",
+    code: `from manim import *
+from manim_play_timeline.timeline import Timeline
+from MF_Tools.easing import cubic_bezier
+from MF_Tools.color import color_gradient
+
+class SimplePluginTest(Scene):
+    def construct(self):
+        # Simple test of plugins without complex animations
+        
+        # Create a basic shape
+        dot = Dot(radius=0.3).set_color(RED).move_to(LEFT * 2)
+        
+        # Create a simple color gradient (fewer colors for performance)
+        colors = color_gradient([RED, BLUE, GREEN], 20)
+        
+        # Add dot to scene
+        self.add(dot)
+        
+        # Simple movement animation
+        self.play(dot.animate.move_to(RIGHT * 2).set_color(BLUE), run_time=2)
+        
+        # Change colors using gradient
+        for i, color in enumerate(colors[:10]):  # Use fewer colors
+            dot.set_color(color)
+            if i % 3 == 0:  # Only update every 3rd color for performance
+                self.wait(0.1)
+        
+        # Simple scale animation
+        self.play(dot.animate.scale(2).set_color(GREEN), run_time=1)
+        self.wait(1)`
   }
 ];
 
 export default function ManiMagicPlayClient() {
   const [code, setCode] = useState(DEFAULT_CODE);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [error, setError] = useState<{type: string; line?: string; message: string; details: string} | null>(null);
+  const [error, setError] = useState<{
+    type: string; 
+    line?: string; 
+    column?: string;
+    message: string; 
+    details: string;
+    suggestion?: string;
+    severity?: 'error' | 'warning';
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [leftWidth, setLeftWidth] = useState(50);
   const [isResizing, setIsResizing] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showExamples, setShowExamples] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<{[key: string]: string}>({});
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   const loadExample = (example: { name: string; description: string; code: string }) => {
     setCode(example.code);
@@ -171,8 +294,8 @@ export default function ManiMagicPlayClient() {
       if (fullError.includes('FileNotFoundError') && fullError.includes('tex')) {
         return {
           type: 'LaTeX Error',
-          message: 'LaTeX is not installed. Use Text() instead of mathematical expressions to avoid LaTeX dependency.',
-          details: 'Install LaTeX (MikTeX/TeX Live) or use simple Text objects instead of mathematical notation.'
+          message: 'LaTeX is not properly installed or configured. Mathematical expressions require LaTeX.',
+          details: 'Solution: Install MiKTeX from https://miktex.org/ or use Text() objects instead of mathematical notation.\n\nFor Windows: Run "winget install MiKTeX.MiKTeX" in PowerShell as Administrator.'
         };
       }
       
@@ -249,14 +372,17 @@ export default function ManiMagicPlayClient() {
   };
 
   const handleRun = async () => {
-    // First validate Python syntax
+    // First validate Python syntax with enhanced error information
     const syntaxValidation = validatePythonSyntax(code);
     if (!syntaxValidation.isValid) {
       setError({
-        type: 'Syntax Error',
+        type: syntaxValidation.severity === 'warning' ? 'Compatibility Warning' : 'Syntax Error',
         line: syntaxValidation.line?.toString(),
+        column: syntaxValidation.column?.toString(),
         message: syntaxValidation.error || 'Invalid Python syntax',
-        details: getSuggestion(syntaxValidation.error || '')
+        details: syntaxValidation.suggestion || getSuggestion(syntaxValidation.error || ''),
+        suggestion: syntaxValidation.suggestion,
+        severity: syntaxValidation.severity || 'error'
       });
       return;
     }
@@ -268,7 +394,10 @@ export default function ManiMagicPlayClient() {
       const res = await fetch("/api/run-manim", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ 
+          code,
+          files: uploadedFiles 
+        }),
       });
       if (!res.ok) {
         const err = await res.text();
@@ -296,6 +425,19 @@ export default function ManiMagicPlayClient() {
     fixedCode = fixedCode.replace(/,?\s*weight=["']bold["']/g, '');
     fixedCode = fixedCode.replace(/,?\s*font_weight=BOLD/g, '');
     
+    // Fix set_fill_by_gradient with multiple colors (v0.19.0+ compatibility)
+    fixedCode = fixedCode.replace(
+      /(\w+)\.set_fill_by_gradient\s*\(([^)]+)\)/g,
+      (match, objectName, colors) => {
+        const colorArray = colors.split(',').map((c: string) => c.trim());
+        if (colorArray.length > 2) {
+          // Convert to set_color_by_gradient for multiple colors
+          return `${objectName}.set_color_by_gradient(${colors})`;
+        }
+        return match; // Keep as is if only 2 colors
+      }
+    );
+    
     // Clean up any double commas that might result from removal
     fixedCode = fixedCode.replace(/,\s*,/g, ',');
     fixedCode = fixedCode.replace(/\(\s*,/g, '(');
@@ -313,13 +455,60 @@ export default function ManiMagicPlayClient() {
     // Fix invalid escape sequences in strings
     fixedCode = fixedCode.replace(/(?<!\\)\\([sc])(?!in|os)/g, '\\\\$1');
     
+    // Fix common typos like extra text after function calls
+    fixedCode = fixedCode.replace(/(\([^)]*\))\s*([a-zA-Z]\w*)\s*$/gm, '$1');
+    
     return fixedCode;
+  };
+
+  // Function to export code as a .py file
+  const exportCode = () => {
+    try {
+      // Extract class name from code for filename
+      const classMatch = code.match(/class\s+(\w+)\s*\(/);
+      const className = classMatch ? classMatch[1] : "manim_scene";
+      
+      // Add helpful comments at the top
+      const exportContent = `# Manim Animation Code
+# Generated from ManiMagic Play
+# Run with: python -m manim ${className.toLowerCase()}.py ${className} -pql
+
+${code}
+
+# To run this animation:
+# 1. Make sure Manim is installed: pip install manim
+# 2. Run: python -m manim ${className.toLowerCase()}.py ${className} -pql
+# 3. Add --format=gif for GIF output
+`;
+      
+      // Create blob with the code content
+      const blob = new Blob([exportContent], { type: 'text/plain;charset=utf-8' });
+      
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${className.toLowerCase()}.py`;
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export failed:', error);
+    }
   };
 
   // Function to provide suggestions for common issues
   const getSuggestion = (errorMessage: string): string => {
     if (errorMessage.includes('weight') || errorMessage.includes('font_weight')) {
       return 'Remove weight="bold" or font_weight=BOLD parameters entirely. They are not supported in this Manim version.';
+    }
+    if (errorMessage.includes('set_fill_by_gradient')) {
+      return 'Use set_color_by_gradient() for multiple colors, or set_fill_by_gradient() with only 2 colors in Manim v0.19.0+.';
     }
     if (errorMessage.includes('LaTeX')) {
       return 'Replace mathematical expressions with simple Text objects. Example: Text("y = sin(x)") instead of LaTeX.';
@@ -328,6 +517,133 @@ export default function ManiMagicPlayClient() {
       return 'Use raw strings like r"\\text" or double backslashes like "\\\\text".';
     }
     return '';
+  };
+
+  // File handling functions
+  const handleFileUpload = (files: FileList) => {
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      
+      if (file.type.startsWith('image/') || file.name.endsWith('.svg')) {
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          setUploadedFiles(prev => ({
+            ...prev,
+            [file.name]: result
+          }));
+          
+          // Auto-insert appropriate code based on file type
+          let codeToInsert = '';
+          if (file.name.endsWith('.svg')) {
+            codeToInsert = `
+# Load and use uploaded SVG: ${file.name}
+# Note: In actual Manim, you would use SVGMobject("path/to/${file.name}")
+svg_obj = SVGMobject("${file.name}")
+svg_obj.scale(0.5)  # Adjust size as needed
+self.add(svg_obj)
+`;
+          } else {
+            codeToInsert = `
+# Load and use uploaded image: ${file.name}
+# Note: In actual Manim, you would use ImageMobject("path/to/${file.name}")
+image = ImageMobject("${file.name}")
+image.scale(0.5)  # Adjust size as needed
+self.add(image)
+`;
+          }
+          setCode(prev => prev + codeToInsert);
+        };
+        
+        if (file.name.endsWith('.svg')) {
+          reader.readAsText(file); // SVG files are text-based
+        } else {
+          reader.readAsDataURL(file); // Other images as base64
+        }
+      } else if (file.type === 'text/plain' || file.name.endsWith('.py')) {
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          setUploadedFiles(prev => ({
+            ...prev,
+            [file.name]: result
+          }));
+          
+          // For Python files, give option to replace or append
+          if (file.name.endsWith('.py')) {
+            if (confirm(`Replace current code with ${file.name}?`)) {
+              setCode(result);
+            } else {
+              setCode(prev => prev + '\n\n# Imported from ' + file.name + '\n' + result);
+            }
+          }
+        };
+        reader.readAsText(file);
+      } else if (file.type === 'application/json' || file.name.endsWith('.json')) {
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          setUploadedFiles(prev => ({
+            ...prev,
+            [file.name]: result
+          }));
+          
+          // Auto-insert JSON loading code
+          const jsonCode = `
+# Load and use uploaded JSON data: ${file.name}
+import json
+# In actual usage, you would load: data = json.load(open("${file.name}"))
+# For demo: data = ${result}
+`;
+          setCode(prev => prev + jsonCode);
+        };
+        reader.readAsText(file);
+      }
+    });
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleFileUpload(files);
+    }
+  };
+
+  const removeFile = (filename: string) => {
+    setUploadedFiles(prev => {
+      const newFiles = { ...prev };
+      delete newFiles[filename];
+      return newFiles;
+    });
+  };
+
+  // Function to copy code to clipboard with visual feedback
+  const copyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000); // Reset after 2 seconds
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = code;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    }
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -387,13 +703,28 @@ export default function ManiMagicPlayClient() {
 
   return (
     <>
+      <style>{`
+        @keyframes spinAnimation {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .spinning {
+          animation: spinAnimation 1s linear infinite;
+        }
+      `}</style>
       <div style={{
         height: "100vh",
         background: "#212129",
         color: "#f8fafc",
         display: "flex",
         flexDirection: "column",
-        userSelect: isResizing ? 'none' : 'auto'
+        userSelect: isResizing ? 'none' : 'auto',
+        position: isFullscreen ? 'fixed' : 'relative',
+        top: isFullscreen ? 0 : 'auto',
+        left: isFullscreen ? 0 : 'auto',
+        right: isFullscreen ? 0 : 'auto',
+        bottom: isFullscreen ? 0 : 'auto',
+        zIndex: isFullscreen ? 9999 : 'auto'
       }}>
         {/* Header */}
         <header style={{ 
@@ -528,7 +859,7 @@ export default function ManiMagicPlayClient() {
             minWidth: "300px"
           }}>
             <div style={{
-              padding: "12px 20px",
+              padding: "3.4px 20px",
               borderBottom: "1px solid #4c5265",
               background: "#3d3e51",
               display: "flex",
@@ -551,36 +882,252 @@ export default function ManiMagicPlayClient() {
                 </span>
               </div>
               
-              <button
-                onClick={handleRun}
-                disabled={loading}
-                style={{
-                  background: loading ? "#40445a" : "#3b82f6",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 6,
-                  padding: "6px 16px",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: loading ? "not-allowed" : "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  opacity: loading ? 0.6 : 1,
-                  transition: "all 0.2s ease"
-                }}
-              >
-                <FaPlay style={{ fontSize: 12 }} /> 
-                {loading ? "Running..." : "Run"}
-              </button>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <button
+                  onClick={exportCode}
+                  title="Export Python code as .py file"
+                  style={{
+                    background: "#059669",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 6,
+                    padding: "6px 12px",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    transition: "all 0.2s ease",
+                    boxShadow: "0 2px 4px rgba(5, 150, 105, 0.2)"
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.target as HTMLButtonElement).style.background = "#047857";
+                    (e.target as HTMLButtonElement).style.transform = "translateY(-1px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.target as HTMLButtonElement).style.background = "#059669";
+                    (e.target as HTMLButtonElement).style.transform = "translateY(0)";
+                  }}
+                >
+                  <FaDownload style={{ fontSize: 11 }} /> 
+                  Export
+                </button>
+                
+                <label
+                  htmlFor="file-upload"
+                  title="Upload images, SVG files, data files, or Python code"
+                  style={{
+                    background: "transparent",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 6,
+                    padding: "8px",
+                    fontSize: 14,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 36,
+                    height: 36,
+                    transition: "all 0.15s ease"
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.target as HTMLElement).style.background = "#8b5cf6";
+                    (e.target as HTMLElement).style.transform = "scale(1.05)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.target as HTMLElement).style.background = "transparent";
+                    (e.target as HTMLElement).style.transform = "scale(1)";
+                  }}
+                >
+                  <FaUpload style={{ fontSize: 14 }} />
+                </label>
+                <input
+                  id="file-upload"
+                  type="file"
+                  multiple
+                  accept=".py,.txt,.json,.jpg,.jpeg,.png,.gif,.bmp,.webp,.svg"
+                  onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
+                  style={{ display: "none" }}
+                />
+                
+                <button
+                  onClick={copyCode}
+                  title={copySuccess ? "Copied to clipboard!" : "Copy code to clipboard"}
+                  style={{
+                    background: copySuccess ? "#10b981" : "transparent",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 6,
+                    padding: "8px",
+                    fontSize: 14,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 36,
+                    height: 36,
+                    transition: "all 0.15s ease",
+                    transform: copySuccess ? "scale(1.1)" : "scale(1)"
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!copySuccess) {
+                      (e.target as HTMLButtonElement).style.background = "#10b981";
+                      (e.target as HTMLButtonElement).style.transform = "scale(1.05)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!copySuccess) {
+                      (e.target as HTMLButtonElement).style.background = "transparent";
+                      (e.target as HTMLButtonElement).style.transform = "scale(1)";
+                    }
+                  }}
+                >
+                  {copySuccess ? <FaCheck style={{ fontSize: 14 }} /> : <FaCopy style={{ fontSize: 14 }} />}
+                </button>
+                
+                <button
+                  onClick={handleRun}
+                  disabled={loading}
+                  title={loading ? "Running..." : "Run"}
+                  style={{
+                    background: loading ? "#64748b" : "transparent",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 6,
+                    padding: "8px",
+                    fontSize: 14,
+                    cursor: loading ? "not-allowed" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 36,
+                    height: 36,
+                    opacity: loading ? 0.8 : 1,
+                    transition: "all 0.15s ease"
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!loading) {
+                      (e.target as HTMLButtonElement).style.background = "#3b82f6";
+                      (e.target as HTMLButtonElement).style.transform = "scale(1.05)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!loading) {
+                      (e.target as HTMLButtonElement).style.background = "transparent";
+                      (e.target as HTMLButtonElement).style.transform = "scale(1)";
+                    }
+                  }}
+                >
+                  {loading ? (
+                    <FaSpinner 
+                      className="spinning"
+                      style={{ fontSize: 14 }} 
+                    />
+                  ) : (
+                    <FaPlay style={{ fontSize: 14 }} />
+                  )}
+                </button>
+              </div>
             </div>
             
-            <div style={{ flex: 1 }}>
-              <CodeEditor
-                value={code}
-                onChange={setCode}
-                height="calc(100vh - 200px)"
-              />
+            <div 
+              style={{ 
+                flex: 1, 
+                position: "relative",
+                display: "flex",
+                flexDirection: "column",
+                overflow: "hidden"
+              }}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              {/* Drag and Drop Overlay */}
+              {isDragOver && (
+                <div style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: "rgba(96, 165, 250, 0.1)",
+                  border: "2px dashed #60a5fa",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  zIndex: 1000,
+                  borderRadius: 8,
+                  margin: 8
+                }}>
+                  <div style={{ textAlign: "center", color: "#60a5fa", fontSize: 16, fontWeight: 600 }}>
+                    📁 Drop files here to upload
+                    <div style={{ fontSize: 14, opacity: 0.8, marginTop: 4 }}>
+                      Supports: .py, .txt, .json, images, .svg
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Uploaded Files Section */}
+              {Object.keys(uploadedFiles).length > 0 && (
+                <div style={{
+                  padding: "8px 12px",
+                  background: "#2a2f3f",
+                  borderBottom: "1px solid #4c5265",
+                  maxHeight: "120px",
+                  overflowY: "auto"
+                }}>
+                  <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 6, fontWeight: 600 }}>
+                    📁 Uploaded Files ({Object.keys(uploadedFiles).length})
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {Object.keys(uploadedFiles).map(filename => (
+                      <div 
+                        key={filename}
+                        style={{
+                          background: "#4c5265",
+                          borderRadius: 4,
+                          padding: "4px 8px",
+                          fontSize: 11,
+                          color: "#e2e8f0",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 4
+                        }}
+                      >
+                        <span>{filename}</span>
+                        <button
+                          onClick={() => removeFile(filename)}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            color: "#f87171",
+                            cursor: "pointer",
+                            padding: 0,
+                            fontSize: 12
+                          }}
+                          title="Remove file"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <div style={{ flex: 1, overflow: "hidden" }}>
+                <CodeEditor
+                  value={code}
+                  onChange={setCode}
+                  height="100%"
+                  errorLine={error?.line ? parseInt(error.line) : undefined}
+                  errorColumn={error?.column ? parseInt(error.column) : undefined}
+                  errorMessage={error?.message}
+                />
+              </div>
             </div>
           </div>
 
@@ -736,61 +1283,132 @@ export default function ManiMagicPlayClient() {
                         margin: "0 0 8px 0", 
                         fontSize: 14, 
                         fontWeight: 600, 
-                        color: "#fca5a5" 
+                        color: error.severity === 'warning' ? "#fbbf24" : "#fca5a5",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8
                       }}>
-                        {error.type} {error.line && `(Line ${error.line})`}
+                        {error.severity === 'warning' ? '⚠️' : '❌'} 
+                        {error.type} 
+                        {error.line && (
+                          <span style={{ 
+                            background: "rgba(239, 68, 68, 0.2)",
+                            padding: "2px 6px",
+                            borderRadius: 4,
+                            fontSize: 11,
+                            fontWeight: 500
+                          }}>
+                            Line {error.line}{error.column && `:${error.column}`}
+                          </span>
+                        )}
                       </h3>
+                      
                       <div style={{ 
-                        margin: "0 0 8px 0", 
+                        margin: "0 0 12px 0", 
                         fontSize: 13, 
                         color: "#fecaca",
                         fontFamily: 'JetBrains Mono, monospace',
                         background: "#3f1f1f",
-                        padding: "8px",
-                        borderRadius: "4px",
-                        border: "1px solid #7f1d1d"
+                        padding: "10px",
+                        borderRadius: "6px",
+                        border: "1px solid #7f1d1d",
+                        lineHeight: 1.4
                       }}>
                         {error.message}
                       </div>
-                      {error.details && (
-                        <div>
-                          <pre style={{ 
-                            margin: "0 0 12px 0", 
-                            fontSize: 11, 
-                            color: "#fecaca",
-                            whiteSpace: "pre-wrap",
-                            wordBreak: "break-word",
-                            fontFamily: 'JetBrains Mono, monospace',
-                            lineHeight: 1.4,
-                            opacity: 0.8
+                      
+                      {error.suggestion && (
+                        <div style={{
+                          background: "#1e3a8a",
+                          border: "1px solid #3b82f6",
+                          borderRadius: 6,
+                          padding: "10px",
+                          margin: "0 0 12px 0"
+                        }}>
+                          <div style={{ 
+                            fontSize: 12, 
+                            fontWeight: 600, 
+                            color: "#93c5fd",
+                            marginBottom: 6,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6
                           }}>
-                            {error.details}
-                          </pre>
-                          {(error.type === 'Font Weight Error' || error.type === 'Syntax Error') && (
-                            <button
-                              onClick={() => {
-                                const fixedCode = autoFixCode(code);
-                                if (fixedCode !== code) {
-                                  setCode(fixedCode);
-                                  setError(null);
-                                }
-                              }}
-                              style={{
-                                background: "#166534",
-                                border: "1px solid #22c55e",
-                                borderRadius: 4,
-                                color: "#bbf7d0",
-                                padding: "6px 12px",
-                                fontSize: 12,
-                                cursor: "pointer",
-                                fontWeight: 500
-                              }}
-                            >
-                              Auto Fix Code
-                            </button>
-                          )}
+                            💡 How to fix this:
+                          </div>
+                          <div style={{ 
+                            fontSize: 12, 
+                            color: "#dbeafe",
+                            lineHeight: 1.4
+                          }}>
+                            {error.suggestion}
+                          </div>
                         </div>
                       )}
+                      
+                      {error.details && !error.suggestion && (
+                        <div style={{ 
+                          margin: "0 0 12px 0", 
+                          fontSize: 11, 
+                          color: "#fecaca",
+                          fontFamily: 'JetBrains Mono, monospace',
+                          background: "rgba(0,0,0,0.3)",
+                          padding: "8px",
+                          borderRadius: "4px",
+                          border: "1px solid #4c5265",
+                          lineHeight: 1.4,
+                          opacity: 0.8
+                        }}>
+                          {error.details}
+                        </div>
+                      )}
+                      
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        {(error.type === 'Font Weight Error' || 
+                          error.type === 'Syntax Error' || 
+                          error.type === 'Compatibility Warning') && (
+                          <button
+                            onClick={() => {
+                              const fixedCode = autoFixCode(code);
+                              if (fixedCode !== code) {
+                                setCode(fixedCode);
+                                setError(null);
+                              }
+                            }}
+                            style={{
+                              background: "#166534",
+                              border: "1px solid #22c55e",
+                              borderRadius: 6,
+                              color: "#bbf7d0",
+                              padding: "8px 14px",
+                              fontSize: 12,
+                              cursor: "pointer",
+                              fontWeight: 600,
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 6
+                            }}
+                          >
+                            🔧 Auto Fix Code
+                          </button>
+                        )}
+                        
+                        <button
+                          onClick={() => setError(null)}
+                          style={{
+                            background: "transparent",
+                            border: "1px solid #4c5265",
+                            borderRadius: 6,
+                            color: "#94a3b8",
+                            padding: "8px 14px",
+                            fontSize: 12,
+                            cursor: "pointer",
+                            fontWeight: 500
+                          }}
+                        >
+                          Dismiss
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
