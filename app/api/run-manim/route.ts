@@ -30,10 +30,23 @@ export async function POST(request: NextRequest) {
         }
       }
     } else {
-      // Handle JSON request (original behavior)
+      // Handle JSON request (from playground)
       const body = await request.json();
       code = body.code;
-      uploadedFiles = body.files || [];
+      
+      // Convert files from {filename: content} format to array format
+      if (body.files && typeof body.files === 'object') {
+        // Handle object format: {filename: content}
+        uploadedFiles = Object.entries(body.files).map(([filename, content]) => ({
+          name: filename,
+          content: content
+        }));
+      } else if (Array.isArray(body.files)) {
+        // Handle array format (already correct)
+        uploadedFiles = body.files;
+      } else {
+        uploadedFiles = [];
+      }
     }
     
     if (!code) {
@@ -211,8 +224,10 @@ def interpolate_colors(color1, color2, steps):
     }
 
     // Handle uploaded files
+    console.log("Processing uploaded files:", uploadedFiles?.length || 0);
     if (uploadedFiles && uploadedFiles.length > 0) {
       for (const file of uploadedFiles) {
+        console.log("Writing file:", file.name, "Content type:", typeof file.content);
         const filePath = path.join(tempDir, file.name);
         
         if (typeof file.content === 'string') {
@@ -221,12 +236,17 @@ def interpolate_colors(color1, color2, steps):
             const base64Data = file.content.split(',')[1];
             const buffer = Buffer.from(base64Data, 'base64');
             fs.writeFileSync(filePath, buffer);
+            console.log("✓ Wrote base64 file:", file.name);
           } else {
-            // Handle text files
+            // Handle text files (SVG content)
             fs.writeFileSync(filePath, file.content, 'utf8');
+            console.log("✓ Wrote SVG file:", file.name);
           }
         }
       }
+      
+      // Debug: List all files in temp directory
+      console.log("Files in temp directory:", fs.readdirSync(tempDir));
     }
 
     // Extract class name from code (simple regex)

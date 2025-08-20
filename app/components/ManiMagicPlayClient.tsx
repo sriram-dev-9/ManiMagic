@@ -1,8 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { FaPlay, FaDownload, FaExclamationCircle, FaExpand, FaCompress, FaCode, FaCopy, FaCheck, FaSpinner, FaUpload } from "react-icons/fa";
-import CodeEditor from "./components/CodeEditor";
-import { validatePythonSyntax } from "./utils/pythonValidator";
+import CodeEditor from "./CodeEditor";
+import { validatePythonSyntax } from "../utils/pythonValidator";
 
 const DEFAULT_CODE = `from manim import *
 
@@ -254,6 +254,37 @@ export default function ManiMagicPlayClient() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Load code and SVG file from localStorage when coming from SVG to Animation
+  useEffect(() => {
+    if (mounted) {
+      const savedCode = localStorage.getItem("playgroundCode");
+      const savedSvgContent = localStorage.getItem("playgroundSvgContent");
+      const savedSvgFile = localStorage.getItem("playgroundSvgFile");
+
+      if (savedCode) {
+        setCode(savedCode);
+        // Clear the saved code so it doesn't persist
+        localStorage.removeItem("playgroundCode");
+      }
+
+      if (savedSvgContent && savedSvgFile) {
+        try {
+          const fileInfo = JSON.parse(savedSvgFile);
+          // Store the SVG content as an uploaded file
+          setUploadedFiles(prev => ({
+            ...prev,
+            [fileInfo.name]: savedSvgContent
+          }));
+          // Clear the saved SVG data
+          localStorage.removeItem("playgroundSvgContent");
+          localStorage.removeItem("playgroundSvgFile");
+        } catch (error) {
+          console.error("Error parsing saved SVG file data:", error);
+        }
+      }
+    }
+  }, [mounted]);
 
   // Close examples dropdown when clicking outside
   useEffect(() => {
