@@ -22,6 +22,29 @@ class HelloManim(Scene):
 export default function ManiMagicPlayClient() {
   const { theme, currentTheme } = useTheme();
 
+  // Define colors based on current theme
+  const colors = {
+    background: currentTheme.background,
+    surface: currentTheme.mobileBg,
+    surfaceSecondary: currentTheme.cardBg,
+    text: currentTheme.text,
+    textSecondary: currentTheme.textSecondary,
+    textMuted: currentTheme.textMuted,
+    border: currentTheme.border,
+    active: currentTheme.active,
+    activeBg: currentTheme.activeBg,
+    activeBorder: currentTheme.activeBorder,
+    hoverBg: currentTheme.hoverBg,
+    buttonBg: currentTheme.buttonBg,
+    buttonHover: currentTheme.buttonHover,
+    inputBg: currentTheme.inputBg,
+    // Additional colors for playground specific needs
+    warning: '#fbbf24',
+    success: '#10b981',
+    error: '#ef4444',
+    accent: '#e07a5f'
+  };
+
   // Template examples for Manim code
   const templates = [
     {
@@ -183,6 +206,26 @@ class SimplePluginTest(Scene):
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Handle URL parameters when the component mounts
+  useEffect(() => {
+    if (mounted) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const codeParam = urlParams.get('code');
+      
+      if (codeParam) {
+        try {
+          const decodedCode = decodeURIComponent(codeParam);
+          setCode(decodedCode);
+          // Clear the URL parameter after setting the code
+          const newUrl = window.location.pathname;
+          window.history.replaceState({}, '', newUrl);
+        } catch (error) {
+          console.error('Error decoding code parameter:', error);
+        }
+      }
+    }
+  }, [mounted]);
 
   // Load code and SVG file from localStorage when coming from SVG to Animation
   useEffect(() => {
@@ -639,18 +682,18 @@ import json
     return (
       <div style={{
         minHeight: "100vh",
-        background: "#212129",
+        background: colors.background,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: "#94a3b8"
+        color: colors.textSecondary
       }}>
         <div style={{ textAlign: "center" }}>
           <div style={{
             width: 32,
             height: 32,
-            border: "2px solid #4c5265",
-            borderTop: "2px solid #60a5fa",
+            border: `2px solid ${colors.border}`,
+            borderTop: `2px solid ${colors.active}`,
             borderRadius: "50%",
             margin: "0 auto 12px",
             animation: "spin 1s linear infinite"
@@ -674,8 +717,8 @@ import json
       `}</style>
       <div style={{
         height: "100vh",
-        background: "#212129",
-        color: "#f8fafc",
+        background: colors.background,
+        color: colors.text,
         display: "flex",
         flexDirection: "column",
         userSelect: isResizing ? 'none' : 'auto',
@@ -689,8 +732,8 @@ import json
         {/* Header */}
         <header style={{ 
           padding: "16px 24px",
-          borderBottom: "1px solid #4c5265",
-          background: "#323949",
+          borderBottom: `1px solid ${colors.border}`,
+          background: colors.surface,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center"
@@ -701,13 +744,13 @@ import json
               fontSize: 24, 
               margin: 0,
               letterSpacing: 0.5,
-              color: "#60a5fa"
+              color: colors.active
             }}>
               ManiMagic Play
             </h1>
             <p style={{ 
               fontSize: 13, 
-              color: "#94a3b8", 
+              color: colors.textSecondary, 
               margin: "2px 0 0 0" 
             }}>
               Interactive Manim Animation Playground
@@ -719,9 +762,9 @@ import json
               <button
                 onClick={() => setShowExamples(!showExamples)}
                 style={{
-                  background: showExamples ? "#4c5265" : "transparent",
-                  border: "1px solid #4c5265",
-                  color: "#94a3b8",
+                  background: showExamples ? colors.border : "transparent",
+                  border: `1px solid ${colors.border}`,
+                  color: colors.textSecondary,
                   borderRadius: 6,
                   padding: "8px 12px",
                   cursor: "pointer",
@@ -741,13 +784,13 @@ import json
                   top: "100%",
                   right: 0,
                   marginTop: 8,
-                  background: "#3d3e51",
-                  border: "1px solid #4c5265",
+                  background: colors.surfaceSecondary,
+                  border: `1px solid ${colors.border}`,
                   borderRadius: 6,
                   padding: 8,
                   minWidth: 200,
                   zIndex: 1000,
-                  boxShadow: "0 10px 25px rgba(0, 0, 0, 0.5)"
+                  boxShadow: theme === 'dark' ? "0 10px 25px rgba(0, 0, 0, 0.5)" : "0 10px 25px rgba(0, 0, 0, 0.1)"
                 }}>
                   {templates.map((example, index) => (
                     <button
@@ -759,7 +802,7 @@ import json
                         padding: "8px 12px",
                         background: "transparent",
                         border: "none",
-                        color: "#f8fafc",
+                        color: colors.text,
                         textAlign: "left",
                         cursor: "pointer",
                         borderRadius: 4,
@@ -767,14 +810,14 @@ import json
                         marginBottom: index < templates.length - 1 ? 4 : 0
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "#4c5265";
+                        e.currentTarget.style.background = colors.hoverBg;
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background = "transparent";
                       }}
                     >
                       <div style={{ fontWeight: 600, marginBottom: 2 }}>{example.name}</div>
-                      <div style={{ fontSize: 11, color: "#94a3b8" }}>{example.description}</div>
+                      <div style={{ fontSize: 11, color: colors.textSecondary }}>{example.description}</div>
                     </button>
                   ))}
                 </div>
@@ -785,8 +828,8 @@ import json
               onClick={() => setIsFullscreen(!isFullscreen)}
               style={{
                 background: "transparent",
-                border: "1px solid #4c5265",
-                color: "#94a3b8",
+                border: `1px solid ${colors.border}`,
+                color: colors.textSecondary,
                 borderRadius: 6,
                 padding: "8px 12px",
                 cursor: "pointer",
@@ -813,15 +856,15 @@ import json
           {/* Left Panel - Code Editor */}
           <div style={{
             width: `${leftWidth}%`,
-            background: "#323949",
+            background: colors.surface,
             display: "flex",
             flexDirection: "column",
             minWidth: "300px"
           }}>
             <div style={{
               padding: "3.4px 20px",
-              borderBottom: "1px solid #4c5265",
-              background: "#3d3e51",
+              borderBottom: `1px solid ${colors.border}`,
+              background: colors.surfaceSecondary,
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center"
@@ -831,12 +874,12 @@ import json
                   width: 8,
                   height: 8,
                   borderRadius: "50%",
-                  background: "#fbbf24"
+                  background: colors.warning
                 }} />
                 <span style={{
                   fontSize: 14,
                   fontWeight: 600,
-                  color: "#e2e8f0"
+                  color: colors.text
                 }}>
                   scene.py
                 </span>
@@ -847,7 +890,7 @@ import json
                   onClick={exportCode}
                   title="Export Python code as .py file"
                   style={{
-                    background: "#059669",
+                    background: colors.success,
                     color: "#fff",
                     border: "none",
                     borderRadius: 6,
@@ -859,14 +902,14 @@ import json
                     alignItems: "center",
                     gap: 6,
                     transition: "all 0.2s ease",
-                    boxShadow: "0 2px 4px rgba(5, 150, 105, 0.2)"
+                    boxShadow: `0 2px 4px rgba(16, 185, 129, 0.2)`
                   }}
                   onMouseEnter={(e) => {
-                    (e.target as HTMLButtonElement).style.background = "#047857";
+                    (e.target as HTMLButtonElement).style.background = theme === 'dark' ? "#047857" : "#059669";
                     (e.target as HTMLButtonElement).style.transform = "translateY(-1px)";
                   }}
                   onMouseLeave={(e) => {
-                    (e.target as HTMLButtonElement).style.background = "#059669";
+                    (e.target as HTMLButtonElement).style.background = colors.success;
                     (e.target as HTMLButtonElement).style.transform = "translateY(0)";
                   }}
                 >
@@ -879,7 +922,7 @@ import json
                   title="Upload images, SVG files, data files, or Python code"
                   style={{
                     background: "transparent",
-                    color: "#fff",
+                    color: colors.text,
                     border: "none",
                     borderRadius: 6,
                     padding: "8px",
@@ -893,7 +936,7 @@ import json
                     transition: "all 0.15s ease"
                   }}
                   onMouseEnter={(e) => {
-                    (e.target as HTMLElement).style.background = "#8b5cf6";
+                    (e.target as HTMLElement).style.background = colors.accent;
                     (e.target as HTMLElement).style.transform = "scale(1.05)";
                   }}
                   onMouseLeave={(e) => {
@@ -916,8 +959,8 @@ import json
                   onClick={copyCode}
                   title={copySuccess ? "Copied to clipboard!" : "Copy code to clipboard"}
                   style={{
-                    background: copySuccess ? "#10b981" : "transparent",
-                    color: "#fff",
+                    background: copySuccess ? colors.success : "transparent",
+                    color: colors.text,
                     border: "none",
                     borderRadius: 6,
                     padding: "8px",
@@ -933,7 +976,7 @@ import json
                   }}
                   onMouseEnter={(e) => {
                     if (!copySuccess) {
-                      (e.target as HTMLButtonElement).style.background = "#10b981";
+                      (e.target as HTMLButtonElement).style.background = colors.success;
                       (e.target as HTMLButtonElement).style.transform = "scale(1.05)";
                     }
                   }}
@@ -952,8 +995,8 @@ import json
                   disabled={loading}
                   title={loading ? "Running..." : "Run"}
                   style={{
-                    background: loading ? "#64748b" : "transparent",
-                    color: "#fff",
+                    background: loading ? colors.textMuted : "transparent",
+                    color: colors.text,
                     border: "none",
                     borderRadius: 6,
                     padding: "8px",
@@ -969,7 +1012,7 @@ import json
                   }}
                   onMouseEnter={(e) => {
                     if (!loading) {
-                      (e.target as HTMLButtonElement).style.background = "#3b82f6";
+                      (e.target as HTMLButtonElement).style.background = colors.active;
                       (e.target as HTMLButtonElement).style.transform = "scale(1.05)";
                     }
                   }}
@@ -1012,10 +1055,10 @@ import json
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  background: "rgba(96, 165, 250, 0.1)",
+                  background: theme === 'dark' ? "rgba(96, 165, 250, 0.1)" : "rgba(59, 130, 246, 0.1)",
                   borderWidth: "2px",
                   borderStyle: "dashed",
-                  borderColor: "#60a5fa",
+                  borderColor: colors.active,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -1023,7 +1066,7 @@ import json
                   borderRadius: 8,
                   margin: 8
                 }}>
-                  <div style={{ textAlign: "center", color: "#60a5fa", fontSize: 16, fontWeight: 600 }}>
+                  <div style={{ textAlign: "center", color: colors.active, fontSize: 16, fontWeight: 600 }}>
                     📁 Drop files here to upload
                     <div style={{ fontSize: 14, opacity: 0.8, marginTop: 4 }}>
                       Supports: .py, .txt, .json, images, .svg
@@ -1036,12 +1079,12 @@ import json
               {Object.keys(uploadedFiles).length > 0 && (
                 <div style={{
                   padding: "8px 12px",
-                  background: "#2a2f3f",
-                  borderBottom: "1px solid #4c5265",
+                  background: colors.surface,
+                  borderBottom: `1px solid ${colors.border}`,
                   maxHeight: "120px",
                   overflowY: "auto"
                 }}>
-                  <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 6, fontWeight: 600 }}>
+                  <div style={{ fontSize: 12, color: colors.text, marginBottom: 6, fontWeight: 600, opacity: 0.7 }}>
                     📁 Uploaded Files ({Object.keys(uploadedFiles).length})
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -1049,11 +1092,11 @@ import json
                       <div 
                         key={filename}
                         style={{
-                          background: "#4c5265",
+                          background: colors.border,
                           borderRadius: 4,
                           padding: "4px 8px",
                           fontSize: 11,
-                          color: "#e2e8f0",
+                          color: colors.text,
                           display: "flex",
                           alignItems: "center",
                           gap: 4
@@ -1065,7 +1108,7 @@ import json
                           style={{
                             background: "none",
                             border: "none",
-                            color: "#f87171",
+                            color: colors.error,
                             cursor: "pointer",
                             padding: 0,
                             fontSize: 12
@@ -1088,6 +1131,7 @@ import json
                   errorLine={error?.line ? parseInt(error.line) : undefined}
                   errorColumn={error?.column ? parseInt(error.column) : undefined}
                   errorMessage={error?.message}
+                  theme={theme}
                 />
               </div>
             </div>
@@ -1098,7 +1142,7 @@ import json
             onMouseDown={handleMouseDown}
             style={{
               width: 4,
-              background: isResizing ? "#60a5fa" : "#4c5265",
+              background: isResizing ? colors.active : colors.border,
               cursor: "col-resize",
               position: "relative",
               transition: isResizing ? "none" : "background 0.2s ease",
@@ -1112,7 +1156,7 @@ import json
               transform: "translate(-50%, -50%)",
               width: 16,
               height: 32,
-              background: isResizing ? "#60a5fa" : "#4c5265",
+              background: isResizing ? colors.active : colors.border,
               borderRadius: 4,
               display: "flex",
               alignItems: "center",
@@ -1121,14 +1165,14 @@ import json
               <div style={{
                 width: 2,
                 height: 16,
-                background: "#212129",
+                background: theme === 'dark' ? '#374151' : '#6b7280',
                 borderRadius: 1,
                 marginRight: 1
               }} />
               <div style={{
                 width: 2,
                 height: 16,
-                background: "#212129",
+                background: theme === 'dark' ? '#374151' : '#6b7280',
                 borderRadius: 1
               }} />
             </div>
@@ -1137,15 +1181,15 @@ import json
           {/* Right Panel - Animation Preview */}
           <div style={{
             width: `${100 - leftWidth}%`,
-            background: "#3d3e51",
+            background: colors.surface,
             display: "flex",
             flexDirection: "column",
             minWidth: "300px"
           }}>
             <div style={{
               padding: "12px 20px",
-              borderBottom: "1px solid #4c5265",
-              background: "#40445a",
+              borderBottom: `1px solid ${colors.border}`,
+              background: colors.background,
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center"
@@ -1155,12 +1199,12 @@ import json
                   width: 8,
                   height: 8,
                   borderRadius: "50%",
-                  background: videoUrl ? "#10b981" : "#94a3b8"
+                  background: videoUrl ? colors.success : colors.border
                 }} />
                 <span style={{
                   fontSize: 14,
                   fontWeight: 600,
-                  color: "#e2e8f0"
+                  color: colors.text
                 }}>
                   Preview
                 </span>
@@ -1171,7 +1215,7 @@ import json
                   href={videoUrl}
                   download="manim_animation.mp4"
                   style={{
-                    background: "#10b981",
+                    background: colors.success,
                     color: "#fff",
                     borderRadius: 6,
                     padding: "6px 12px",
@@ -1202,13 +1246,13 @@ import json
               {loading && (
                 <div style={{
                   textAlign: "center",
-                  color: "#94a3b8"
+                  color: colors.textSecondary
                 }}>
                   <div style={{
                     width: 32,
                     height: 32,
-                    border: "2px solid #4c5265",
-                    borderTop: "2px solid #60a5fa",
+                    border: `2px solid ${colors.border}`,
+                    borderTop: `2px solid ${colors.active}`,
                     borderRadius: "50%",
                     margin: "0 auto 12px",
                     animation: "spin 1s linear infinite"
@@ -1221,8 +1265,8 @@ import json
 
               {error && !loading && (
                 <div style={{
-                  background: "#4c1d1d",
-                  border: "1px solid #dc2626",
+                  background: theme === 'dark' ? "#4c1d1d" : "#fef2f2",
+                  border: `1px solid ${colors.error}`,
                   borderRadius: 8,
                   padding: 16,
                   width: "100%",
@@ -1236,7 +1280,7 @@ import json
                   }}>
                     <FaExclamationCircle style={{ 
                       fontSize: 16, 
-                      color: "#ef4444", 
+                      color: colors.error, 
                       marginTop: 2,
                       flexShrink: 0 
                     }} />
@@ -1245,7 +1289,7 @@ import json
                         margin: "0 0 8px 0", 
                         fontSize: 14, 
                         fontWeight: 600, 
-                        color: error.severity === 'warning' ? "#fbbf24" : "#fca5a5",
+                        color: error.severity === 'warning' ? colors.warning : colors.error,
                         display: "flex",
                         alignItems: "center",
                         gap: 8
@@ -1254,7 +1298,7 @@ import json
                         {error.type} 
                         {error.line && (
                           <span style={{ 
-                            background: "rgba(239, 68, 68, 0.2)",
+                            background: `rgba(239, 68, 68, 0.2)`,
                             padding: "2px 6px",
                             borderRadius: 4,
                             fontSize: 11,
@@ -1268,12 +1312,12 @@ import json
                       <div style={{ 
                         margin: "0 0 12px 0", 
                         fontSize: 13, 
-                        color: "#fecaca",
+                        color: theme === 'dark' ? "#fecaca" : "#991b1b",
                         fontFamily: 'JetBrains Mono, monospace',
-                        background: "#3f1f1f",
+                        background: theme === 'dark' ? "#3f1f1f" : "#fee2e2",
                         padding: "10px",
                         borderRadius: "6px",
-                        border: "1px solid #7f1d1d",
+                        border: `1px solid ${theme === 'dark' ? '#7f1d1d' : '#fecaca'}`,
                         lineHeight: 1.4
                       }}>
                         {error.message}
@@ -1420,9 +1464,9 @@ import json
         <footer style={{ 
           padding: "12px 24px",
           fontSize: 12, 
-          color: "#64748b",
-          borderTop: "1px solid #4c5265",
-          background: "#323949",
+          color: colors.textMuted,
+          borderTop: `1px solid ${colors.border}`,
+          background: colors.surface,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center"
@@ -1433,7 +1477,7 @@ import json
               href="https://manim.community/" 
               target="_blank" 
               rel="noopener noreferrer" 
-              style={{ color: "#60a5fa", textDecoration: "none" }}
+              style={{ color: colors.active, textDecoration: "none" }}
             >
               Manim Community
             </a>
@@ -1443,7 +1487,7 @@ import json
               href="https://github.com/Jagan-Dev-9/ManiMagic" 
               target="_blank" 
               rel="noopener noreferrer" 
-              style={{ color: "#a78bfa", textDecoration: "none" }}
+              style={{ color: colors.accent, textDecoration: "none" }}
             >
               View on GitHub
             </a>
