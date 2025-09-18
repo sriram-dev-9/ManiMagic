@@ -51,7 +51,7 @@ export default function Homepage() {
       <div style={{
         maxWidth: '1200px',
         margin: '0 auto',
-        padding: '80px 20px',
+        padding: '100px 20px',
         textAlign: 'center'
       }}>
         <h1 style={{

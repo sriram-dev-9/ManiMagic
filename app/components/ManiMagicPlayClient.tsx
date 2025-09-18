@@ -184,6 +184,26 @@ class SimplePluginTest(Scene):
     setMounted(true);
   }, []);
 
+  // Handle URL parameters when the component mounts
+  useEffect(() => {
+    if (mounted) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const codeParam = urlParams.get('code');
+      
+      if (codeParam) {
+        try {
+          const decodedCode = decodeURIComponent(codeParam);
+          setCode(decodedCode);
+          // Clear the URL parameter after setting the code
+          const newUrl = window.location.pathname;
+          window.history.replaceState({}, '', newUrl);
+        } catch (error) {
+          console.error('Error decoding code parameter:', error);
+        }
+      }
+    }
+  }, [mounted]);
+
   // Load code and SVG file from localStorage when coming from SVG to Animation
   useEffect(() => {
     if (mounted) {
