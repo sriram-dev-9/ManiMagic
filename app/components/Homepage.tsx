@@ -1,161 +1,120 @@
-"use client";
+﻿"use client";
 import React from "react";
 import Link from "next/link";
-import { FaPlay, FaCode, FaImage, FaGithub, FaArrowRight } from "react-icons/fa";
-
-const styles = {
-  container: {
-    minHeight: '100vh',
-    background: '#212129',
-    paddingTop: '64px', // Account for fixed navbar
-  },
-  hero: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '80px 20px',
-    textAlign: 'center' as const,
-  },
-  title: {
-    fontSize: '4rem',
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: '24px',
-  },
-  subtitle: {
-    fontSize: '1.5rem',
-    color: '#94a3b8',
-    marginBottom: '32px',
-    maxWidth: '800px',
-    margin: '0 auto 32px auto',
-  },
-  buttonContainer: {
-    display: 'flex',
-    gap: '16px',
-    justifyContent: 'center',
-    flexWrap: 'wrap' as const,
-    marginBottom: '80px',
-  },
-  primaryButton: {
-    background: '#3b82f6',
-    color: 'white',
-    padding: '16px 32px',
-    borderRadius: '8px',
-    fontWeight: '600',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    textDecoration: 'none',
-    transition: 'background-color 0.2s',
-    border: 'none',
-    cursor: 'pointer',
-  },
-  secondaryButton: {
-    border: '2px solid #4c5265',
-    color: '#ffffff',
-    padding: '16px 32px',
-    borderRadius: '8px',
-    fontWeight: '600',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    textDecoration: 'none',
-    transition: 'all 0.2s',
-    background: 'transparent',
-  },
-  features: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '0 20px 80px 20px',
-  },
-  featuresTitle: {
-    fontSize: '2.5rem',
-    fontWeight: 'bold',
-    textAlign: 'center' as const,
-    color: '#ffffff',
-    marginBottom: '48px',
-  },
-  featuresGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-    gap: '32px',
-  },
-  featureCard: {
-    background: '#323949',
-    borderRadius: '12px',
-    padding: '32px',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-    border: '1px solid #4c5265',
-  },
-  featureIcon: {
-    width: '48px',
-    height: '48px',
-    borderRadius: '8px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: '24px',
-  },
-  featureTitle: {
-    fontSize: '1.25rem',
-    fontWeight: '600',
-    color: '#ffffff',
-    marginBottom: '16px',
-  },
-  featureDescription: {
-    color: '#94a3b8',
-    lineHeight: '1.6',
-  },
-  footer: {
-    background: '#1a1a20',
-    color: 'white',
-    padding: '24px 20px',
-  },
-  footerContent: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexWrap: 'wrap' as const,
-    gap: '24px',
-  },
-  footerLogo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  },
-  footerLinks: {
-    display: 'flex',
-    gap: '24px',
-    flexWrap: 'wrap' as const,
-  },
-  footerLink: {
-    color: '#9ca3af',
-    textDecoration: 'none',
-    transition: 'color 0.2s',
-  },
-};
+import { FaPlay, FaCode, FaImage, FaGithub, FaArrowRight, FaUpload, FaDownload, FaPalette } from "react-icons/fa";
+import { useTheme } from "./ThemeProvider";
 
 export default function Homepage() {
+  const { theme } = useTheme();
+
+  const isDark = theme === 'dark';
+  const colors = {
+    background: isDark ? '#212129' : '#ece6e2',
+    surface: isDark ? '#323949' : '#ffffff',
+    surfaceSecondary: isDark ? '#3d3e51' : '#f8f9fa',
+    text: isDark ? '#ffffff' : '#343434',
+    textSecondary: isDark ? '#94a3b8' : '#6c757d',
+    textMuted: isDark ? '#e2e8f0' : '#6c757d',
+    primary: '#454866',
+    secondary: '#81b29a',
+    accent: '#e07a5f',
+    border: isDark ? '#4c5265' : '#dee2e6',
+    success: isDark ? '#10b981' : '#28a745'
+  };
+
+  const features = [
+    {
+      icon: <FaCode style={{ width: '32px', height: '32px' }} />,
+      title: "Interactive Playground",
+      description: "Write and test Manim code with real-time preview. Built-in templates and examples to get you started quickly."
+    },
+    {
+      icon: <FaUpload style={{ width: '32px', height: '32px' }} />,
+      title: "SVG to Animation",
+      description: "Transform your SVG graphics into stunning animations. Simply upload your SVG and watch it come to life."
+    },
+    {
+      icon: <FaDownload style={{ width: '32px', height: '32px' }} />,
+      title: "Export Anywhere",
+      description: "Download your animations as high-quality videos ready for presentations, social media, or education."
+    }
+  ];
+
   return (
-    <div style={styles.container}>
+    <div style={{
+      minHeight: '100vh',
+      background: colors.background,
+      paddingTop: '64px',
+      transition: 'background-color 0.3s ease'
+    }}>
       {/* Hero Section */}
-      <div style={styles.hero}>
-        <h1 style={styles.title}>ManiMagic</h1>
+      <div style={{
+        maxWidth: '1200px',
+        margin: '0 auto',
+        padding: '80px 20px',
+        textAlign: 'center'
+      }}>
+        <h1 style={{
+          fontSize: '4rem',
+          fontWeight: 'bold',
+          color: colors.text,
+          marginBottom: '24px',
+          transition: 'color 0.3s ease'
+        }}>
+          ManiMagic
+        </h1>
         
-        <p style={styles.subtitle}>
+        <p style={{
+          fontSize: '1.5rem',
+          color: colors.textSecondary,
+          marginBottom: '48px',
+          maxWidth: '800px',
+          margin: '0 auto 48px auto',
+          transition: 'color 0.3s ease',
+          lineHeight: '1.6'
+        }}>
           Create stunning mathematical animations with ease. 
           Build, preview, and export beautiful Manim animations right in your browser.
         </p>
         
-        <div style={styles.buttonContainer}>
-          <Link href="/playground" style={styles.primaryButton}>
-            <FaPlay style={{ width: '20px', height: '20px' }} />
+        <div style={{
+          display: 'flex',
+          gap: '16px',
+          justifyContent: 'center',
+          flexWrap: 'wrap',
+          marginBottom: '120px'
+        }}>
+          <Link href="/play" style={{
+            background: colors.accent,
+            color: 'white',
+            padding: '16px 32px',
+            borderRadius: '12px',
+            fontWeight: '600',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            textDecoration: 'none',
+            transition: 'all 0.3s ease',
+            fontSize: '1.1rem'
+          }}>
+            <FaPlay style={{ width: '20px', height: '20px', color: 'white' }} />
             Start Creating
-            <FaArrowRight style={{ width: '16px', height: '16px' }} />
+            <FaArrowRight style={{ width: '16px', height: '16px', color: 'white' }} />
           </Link>
           
-          <Link href="/svg-to-animation" style={styles.secondaryButton}>
+          <Link href="/svg-to-animation" style={{
+            background: colors.secondary,
+            color: 'white',
+            padding: '16px 32px',
+            borderRadius: '12px',
+            fontWeight: '600',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            textDecoration: 'none',
+            transition: 'all 0.3s ease',
+            fontSize: '1.1rem'
+          }}>
             <FaImage style={{ width: '20px', height: '20px' }} />
             SVG to Animation
           </Link>
@@ -163,77 +122,258 @@ export default function Homepage() {
       </div>
 
       {/* Features Section */}
-      <div style={styles.features}>
-        <h2 style={styles.featuresTitle}>
-          Everything you need to create amazing animations
-        </h2>
-        
-        <div style={styles.featuresGrid}>
-          <div style={styles.featureCard}>
-            <div style={{...styles.featureIcon, background: '#dbeafe', color: '#2563eb'}}>
-              <FaCode style={{ width: '24px', height: '24px' }} />
-            </div>
-            <h3 style={styles.featureTitle}>Interactive Playground</h3>
-            <p style={styles.featureDescription}>
-              Write Manim code with syntax highlighting, error detection, and instant preview. 
-              No setup required - just start coding!
-            </p>
-          </div>
+      <div style={{
+        background: colors.surface,
+        padding: '100px 20px',
+        transition: 'background-color 0.3s ease'
+      }}>
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto'
+        }}>
+          <h2 style={{
+            fontSize: '2.5rem',
+            fontWeight: 'bold',
+            color: colors.text,
+            textAlign: 'center',
+            marginBottom: '16px',
+            transition: 'color 0.3s ease'
+          }}>
+            Features
+          </h2>
+          <p style={{
+            fontSize: '1.25rem',
+            color: colors.textSecondary,
+            textAlign: 'center',
+            marginBottom: '80px',
+            maxWidth: '600px',
+            margin: '0 auto 80px auto',
+            transition: 'color 0.3s ease'
+          }}>
+            Everything you need to create professional mathematical animations
+          </p>
           
-          <div style={styles.featureCard}>
-            <div style={{...styles.featureIcon, background: '#ede9fe', color: '#7c3aed'}}>
-              <FaImage style={{ width: '24px', height: '24px' }} />
-            </div>
-            <h3 style={styles.featureTitle}>SVG to Animation</h3>
-            <p style={styles.featureDescription}>
-              Upload your SVG files and automatically generate beautiful Manim animations. 
-              Perfect for logos, icons, and graphics.
-            </p>
-          </div>
-          
-          <div style={styles.featureCard}>
-            <div style={{...styles.featureIcon, background: '#dcfce7', color: '#16a34a'}}>
-              <FaPlay style={{ width: '24px', height: '24px' }} />
-            </div>
-            <h3 style={styles.featureTitle}>Instant Preview</h3>
-            <p style={styles.featureDescription}>
-              See your animations come to life instantly. Export as MP4 or share with others. 
-              No waiting, no hassle.
-            </p>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '32px'
+          }}>
+            {features.map((feature, index) => (
+              <div key={index} style={{
+                background: colors.surfaceSecondary,
+                padding: '32px',
+                borderRadius: '16px',
+                textAlign: 'center',
+                transition: 'all 0.3s ease',
+                border: `1px solid ${colors.border}`,
+                boxShadow: isDark ? '0 4px 20px rgba(0, 0, 0, 0.1)' : '0 4px 20px rgba(0, 0, 0, 0.05)'
+              }}>
+                <div style={{
+                  color: colors.primary,
+                  marginBottom: '24px',
+                  display: 'flex',
+                  justifyContent: 'center'
+                }}>
+                  {feature.icon}
+                </div>
+                <h3 style={{
+                  fontSize: '1.25rem',
+                  fontWeight: '600',
+                  color: colors.text,
+                  marginBottom: '16px',
+                  transition: 'color 0.3s ease'
+                }}>
+                  {feature.title}
+                </h3>
+                <p style={{
+                  color: colors.textSecondary,
+                  lineHeight: '1.6',
+                  transition: 'color 0.3s ease'
+                }}>
+                  {feature.description}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
+      {/* CTA Section */}
+      <div style={{
+        background: colors.background,
+        padding: '100px 20px',
+        textAlign: 'center',
+        transition: 'background-color 0.3s ease'
+      }}>
+        <div style={{
+          maxWidth: '800px',
+          margin: '0 auto'
+        }}>
+          <h2 style={{
+            fontSize: '2.5rem',
+            fontWeight: 'bold',
+            color: colors.text,
+            marginBottom: '24px',
+            transition: 'color 0.3s ease'
+          }}>
+            Ready to Create Amazing Animations?
+          </h2>
+          <p style={{
+            fontSize: '1.25rem',
+            color: colors.textSecondary,
+            marginBottom: '48px',
+            transition: 'color 0.3s ease',
+            lineHeight: '1.6'
+          }}>
+            Join thousands of educators, students, and creators who use ManiMagic to bring mathematics to life.
+          </p>
+          <Link href="/play" style={{
+            background: colors.accent,
+            color: 'white',
+            padding: '20px 40px',
+            borderRadius: '12px',
+            fontWeight: '600',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '12px',
+            textDecoration: 'none',
+            transition: 'all 0.3s ease',
+            fontSize: '1.2rem'
+          }}>
+            <FaPlay style={{ width: '24px', height: '24px' }} />
+            Get Started Now
+            <FaArrowRight style={{ width: '20px', height: '20px' }} />
+          </Link>
+        </div>
+      </div>
+
       {/* Footer */}
-      <footer style={styles.footer}>
-        <div style={styles.footerContent}>
-          <div style={styles.footerLogo}>
-            <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>ManiMagic</span>
+      <footer style={{
+        background: colors.surface,
+        borderTop: `1px solid ${colors.border}`,
+        padding: '60px 20px 40px',
+        transition: 'all 0.3s ease'
+      }}>
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto'
+        }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+            gap: '40px',
+            marginBottom: '40px'
+          }}>
+            <div>
+              <h3 style={{
+                fontSize: '1.5rem',
+                fontWeight: 'bold',
+                color: colors.text,
+                marginBottom: '16px',
+                transition: 'color 0.3s ease'
+              }}>
+                ManiMagic
+              </h3>
+              <p style={{
+                color: colors.textSecondary,
+                lineHeight: '1.6',
+                transition: 'color 0.3s ease'
+              }}>
+                Create beautiful mathematical animations with the power of Manim, 
+                right in your browser. No installation required.
+              </p>
+            </div>
+            
+            <div>
+              <h4 style={{
+                fontSize: '1.1rem',
+                fontWeight: '600',
+                color: colors.text,
+                marginBottom: '16px',
+                transition: 'color 0.3s ease'
+              }}>
+                Tools
+              </h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <Link href="/play" style={{
+                  color: colors.textSecondary,
+                  textDecoration: 'none',
+                  transition: 'color 0.3s ease',
+                  fontSize: '0.95rem'
+                }}>
+                  Playground
+                </Link>
+                <Link href="/svg-to-animation" style={{
+                  color: colors.textSecondary,
+                  textDecoration: 'none',
+                  transition: 'color 0.3s ease',
+                  fontSize: '0.95rem'
+                }}>
+                  SVG to Animation
+                </Link>
+              </div>
+            </div>
+            
+            <div>
+              <h4 style={{
+                fontSize: '1.1rem',
+                fontWeight: '600',
+                color: colors.text,
+                marginBottom: '16px',
+                transition: 'color 0.3s ease'
+              }}>
+                Resources
+              </h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <a href="https://www.manim.community/" target="_blank" rel="noopener noreferrer" style={{
+                  color: colors.textSecondary,
+                  textDecoration: 'none',
+                  transition: 'color 0.3s ease',
+                  fontSize: '0.95rem'
+                }}>
+                  Manim Community
+                </a>
+                <a href="https://docs.manim.community/" target="_blank" rel="noopener noreferrer" style={{
+                  color: colors.textSecondary,
+                  textDecoration: 'none',
+                  transition: 'color 0.3s ease',
+                  fontSize: '0.95rem'
+                }}>
+                  Documentation
+                </a>
+              </div>
+            </div>
           </div>
           
-          <div style={styles.footerLinks}>
-            <Link href="/playground" style={styles.footerLink}>
-              Playground
-            </Link>
-            <Link href="/svg-to-animation" style={styles.footerLink}>
-              SVG to Animation
-            </Link>
-            <Link href="/docs" style={styles.footerLink}>
-              Docs
-            </Link>
+          <div style={{
+            borderTop: `1px solid ${colors.border}`,
+            paddingTop: '32px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '16px'
+          }}>
+            <p style={{
+              color: colors.textSecondary,
+              fontSize: '0.9rem',
+              transition: 'color 0.3s ease'
+            }}>
+              © 2024 ManiMagic. Made with ❤️ for the math community.
+            </p>
             <a
-              href="https://github.com/Jagan-Dev-9/ManiMagic"
+              href="https://github.com"
               target="_blank"
               rel="noopener noreferrer"
-              style={styles.footerLink}
+              style={{
+                color: colors.textSecondary,
+                fontSize: '1.5rem',
+                transition: 'color 0.3s ease'
+              }}
             >
-              <FaGithub style={{ width: '20px', height: '20px' }} />
+              <FaGithub />
             </a>
           </div>
-        </div>
-        
-        <div style={{ borderTop: '1px solid #374151', marginTop: '16px', paddingTop: '16px', textAlign: 'center', color: '#9ca3af' }}>
-          <p>&copy; 2025 ManiMagic. Built with ❤️ for the animation community.</p>
         </div>
       </footer>
     </div>

@@ -1,10 +1,12 @@
-"use client";
+﻿"use client";
 import React, { useState, useCallback } from "react";
 import { FaUpload, FaPlay, FaDownload, FaEdit } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import Navbar from "./Navbar";
+import { useTheme } from "./ThemeProvider";
 
 export default function SVGToAnimation() {
+  const { theme } = useTheme();
   const [dragActive, setDragActive] = useState(false);
   const [svgFile, setSvgFile] = useState<File | null>(null);
   const [tagline, setTagline] = useState("");
@@ -12,6 +14,21 @@ export default function SVGToAnimation() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+
+  const isDark = theme === 'dark';
+  const colors = {
+    background: isDark ? '#212129' : '#ece6e2',
+    surface: isDark ? '#323949' : '#ffffff',
+    surfaceSecondary: isDark ? '#3d3e51' : '#f8f9fa',
+    text: isDark ? '#ffffff' : '#343434',
+    textSecondary: isDark ? '#94a3b8' : '#6c757d',
+    textMuted: isDark ? '#e2e8f0' : '#6c757d',
+    primary: isDark ? '#3b82f6' : '#454866',
+    border: isDark ? '#4c5265' : '#dee2e6',
+    borderHover: isDark ? '#60a5fa' : '#007bff',
+    success: isDark ? '#059669' : '#28a745',
+    gradient: isDark ? 'linear-gradient(45deg, #3b82f6, #8b5cf6)' : 'linear-gradient(45deg, #454866, #6c5ce7)'
+  };
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -53,7 +70,7 @@ export default function SVGToAnimation() {
     setVideoUrl("");
 
     try {
-      const code = `from manim import *
+      const codeTemplate = `from manim import *
 class GitLogoRevealWrite(Scene):
     def construct(self):
         logo = SVGMobject("${svgFile.name}").set_stroke(WHITE, 6).set_fill(opacity=0)
@@ -66,7 +83,9 @@ class GitLogoRevealWrite(Scene):
         else:
             logo.scale(1.5)
         
-        logo.move_to(ORIGIN)${tagline.trim() ? `
+        logo.move_to(ORIGIN)`;
+
+      const taglineCode = tagline.trim() ? `
         
         text = Text("${tagline.trim()}", font_size=54, color=WHITE).next_to(logo, DOWN, buff=0.7)
         text.set_fill(opacity=0).set_stroke(WHITE, 2)
@@ -79,7 +98,9 @@ class GitLogoRevealWrite(Scene):
         
         self.play(Create(logo), run_time=2)
         self.play(logo.animate.set_fill(opacity=1), run_time=1.2)
-        self.wait(2)`}`;
+        self.wait(2)`;
+
+      const code = codeTemplate + taglineCode;
 
       const formData = new FormData();
       formData.append("code", code);
@@ -91,21 +112,17 @@ class GitLogoRevealWrite(Scene):
       });
 
       if (response.ok) {
-        // Check if response is video (direct file) or JSON (error)
         const contentType = response.headers.get("content-type");
         
         if (contentType?.includes("video/mp4")) {
-          // Response is the video file directly
           const videoBlob = await response.blob();
           const videoUrl = URL.createObjectURL(videoBlob);
           setVideoUrl(videoUrl);
         } else {
-          // Response is JSON (likely an error)
           const result = await response.json();
           setError(result.error || "Failed to generate animation");
         }
       } else {
-        // Handle HTTP error status
         try {
           const result = await response.json();
           setError(result.error || `Server error: ${response.status}`);
@@ -123,7 +140,7 @@ class GitLogoRevealWrite(Scene):
   const runOnPlayground = () => {
     if (!svgFile) return;
 
-    const code = `from manim import *
+    const codeTemplate = `from manim import *
 class GitLogoRevealWrite(Scene):
     def construct(self):
         logo = SVGMobject("${svgFile.name}").set_stroke(WHITE, 6).set_fill(opacity=0)
@@ -136,7 +153,9 @@ class GitLogoRevealWrite(Scene):
         else:
             logo.scale(1.5)
         
-        logo.move_to(ORIGIN)${tagline.trim() ? `
+        logo.move_to(ORIGIN)`;
+
+    const taglineCode = tagline.trim() ? `
         
         text = Text("${tagline.trim()}", font_size=54, color=WHITE).next_to(logo, DOWN, buff=0.7)
         text.set_fill(opacity=0).set_stroke(WHITE, 2)
@@ -149,9 +168,10 @@ class GitLogoRevealWrite(Scene):
         
         self.play(Create(logo), run_time=2)
         self.play(logo.animate.set_fill(opacity=1), run_time=1.2)
-        self.wait(2)`}`;
+        self.wait(2)`;
 
-    // Store both code and SVG file data in localStorage
+    const code = codeTemplate + taglineCode;
+
     localStorage.setItem("playgroundCode", code);
     localStorage.setItem("playgroundSvgFile", JSON.stringify({
       name: svgFile.name,
@@ -160,7 +180,6 @@ class GitLogoRevealWrite(Scene):
       lastModified: svgFile.lastModified
     }));
     
-    // Create a blob URL for the SVG file content
     const reader = new FileReader();
     reader.onload = (e) => {
       const svgContent = e.target?.result as string;
@@ -171,13 +190,14 @@ class GitLogoRevealWrite(Scene):
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#212129", paddingTop: "64px" }}>
+    <div style={{ minHeight: "100vh", background: colors.background, paddingTop: "64px", transition: 'background 0.3s ease' }}>
       <Navbar />
       <div style={{
         minHeight: "calc(100vh - 64px)",
-        background: "#212129",
-        color: "#f8fafc",
+        background: colors.background,
+        color: colors.text,
         padding: "2rem",
+        transition: 'all 0.3s ease',
       }}>
         <div style={{
           maxWidth: "1400px",
@@ -189,26 +209,27 @@ class GitLogoRevealWrite(Scene):
         }}>
           {/* Left Panel - Upload Section */}
           <div style={{
-            background: "#323949",
+            background: colors.surface,
             borderRadius: "12px",
             padding: "2rem",
             borderWidth: "1px",
             borderStyle: "solid",
-            borderColor: "#4c5265",
+            borderColor: colors.border,
+            transition: 'all 0.3s ease',
           }}>
             {/* File Drop Zone */}
             <div
               style={{
                 borderWidth: "2px",
                 borderStyle: "dashed",
-                borderColor: dragActive ? "#60a5fa" : "#4c5265",
+                borderColor: dragActive ? colors.borderHover : colors.border,
                 borderRadius: "12px",
                 padding: "3rem 2rem",
                 textAlign: "center" as const,
                 marginBottom: "1.5rem",
                 cursor: "pointer",
                 transition: "all 0.3s ease",
-                background: dragActive ? "rgba(96, 165, 250, 0.1)" : "#3d3e51",
+                background: dragActive ? (isDark ? "rgba(96, 165, 250, 0.1)" : "rgba(0, 123, 255, 0.1)") : colors.surfaceSecondary,
               }}
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
@@ -218,21 +239,21 @@ class GitLogoRevealWrite(Scene):
             >
               <div style={{
                 fontSize: "3rem",
-                color: "#94a3b8",
+                color: colors.textSecondary,
                 marginBottom: "1rem",
               }}>
                 <FaUpload />
               </div>
               <div style={{
                 fontSize: "1.125rem",
-                color: "#f8fafc",
+                color: colors.text,
                 marginBottom: "0.5rem",
               }}>
                 {svgFile ? `Selected: ${svgFile.name}` : "Drop your SVG file here"}
               </div>
               <div style={{
                 fontSize: "0.875rem",
-                color: "#94a3b8",
+                color: colors.textSecondary,
               }}>
                 or click to browse
               </div>
@@ -251,7 +272,7 @@ class GitLogoRevealWrite(Scene):
                 display: "block",
                 fontSize: "1rem",
                 fontWeight: "500",
-                color: "#e2e8f0",
+                color: colors.textMuted,
                 marginBottom: "0.5rem",
               }} htmlFor="tagline">
                 Enter your tagline (optional):
@@ -267,13 +288,13 @@ class GitLogoRevealWrite(Scene):
                   padding: "0.75rem 1rem",
                   borderWidth: "2px",
                   borderStyle: "solid",
-                  borderColor: tagline.trim() ? "#10b981" : "#4c5265",
+                  borderColor: tagline.trim() ? colors.success : colors.border,
                   borderRadius: "8px",
                   fontSize: "1rem",
                   outline: "none",
                   transition: "border-color 0.2s",
-                  background: "#3d3e51",
-                  color: "#f8fafc",
+                  background: colors.surfaceSecondary,
+                  color: colors.text,
                 }}
               />
             </div>
@@ -286,7 +307,7 @@ class GitLogoRevealWrite(Scene):
                 style={{
                   flex: 1,
                   padding: "0.75rem 1.5rem",
-                  background: (!svgFile || loading) ? "#4c5265" : "linear-gradient(45deg, #3b82f6, #8b5cf6)",
+                  background: (!svgFile || loading) ? colors.border : colors.gradient,
                   color: "white",
                   borderWidth: "0px",
                   borderRadius: "8px",
@@ -310,7 +331,7 @@ class GitLogoRevealWrite(Scene):
                 disabled={!svgFile}
                 style={{
                   padding: "0.75rem 1rem",
-                  background: !svgFile ? "#4c5265" : "#059669",
+                  background: !svgFile ? colors.border : colors.success,
                   color: "white",
                   borderWidth: "0px",
                   borderRadius: "8px",
@@ -332,19 +353,20 @@ class GitLogoRevealWrite(Scene):
 
           {/* Right Panel - Animation Preview */}
           <div style={{
-            background: "#323949",
+            background: colors.surface,
             borderRadius: "12px",
             padding: "2rem",
             borderWidth: "1px",
             borderStyle: "solid",
-            borderColor: "#4c5265",
+            borderColor: colors.border,
             minHeight: "600px",
             display: "flex",
             flexDirection: "column",
+            transition: 'all 0.3s ease',
           }}>
             <h3 style={{ 
               marginBottom: "1.5rem", 
-              color: "#e2e8f0",
+              color: colors.textMuted,
               fontSize: "1.25rem",
               fontWeight: "600"
             }}>
@@ -353,97 +375,98 @@ class GitLogoRevealWrite(Scene):
             
             <div style={{
               flex: 1,
-              background: "#3d3e51",
+              background: colors.surfaceSecondary,
               borderRadius: "8px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               borderWidth: "1px",
               borderStyle: "solid",
-              borderColor: "#4c5265",
+              borderColor: colors.border,
               position: "relative" as const,
+              transition: 'all 0.3s ease',
             }}>
               {loading && (
                 <div style={{
                   textAlign: "center",
-                  color: "#94a3b8"
+                  color: colors.textSecondary
                 }}>
                   <div style={{
                     width: 32,
                     height: 32,
                     borderWidth: "2px",
                     borderStyle: "solid",
-                    borderColor: "#4c5265",
-                    borderTopColor: "#60a5fa",
+                    borderColor: colors.border,
+                    borderTopColor: colors.borderHover,
                     borderRadius: "50%",
                     margin: "0 auto 12px",
                     animation: "spin 1s linear infinite"
                   }} />
-                  <p>Generating animation...</p>
+                  <div>Generating animation...</div>
                 </div>
               )}
 
-              {error && !loading && (
+              {!loading && !videoUrl && !error && (
                 <div style={{
-                  background: "#4c1d1d",
-                  borderWidth: "1px",
-                  borderStyle: "solid",
-                  borderColor: "#dc2626",
-                  borderRadius: "8px",
-                  padding: "16px",
-                  color: "#fecaca",
-                  textAlign: "center" as const,
-                  margin: "20px",
+                  textAlign: "center",
+                  color: colors.textSecondary,
+                  fontSize: "1.1rem"
                 }}>
-                  <p>{error}</p>
+                  Upload an SVG file to see the animation preview
                 </div>
               )}
 
-              {videoUrl && !loading && !error && (
+              {error && (
+                <div style={{
+                  textAlign: "center",
+                  color: "#ef4444",
+                  fontSize: "1rem",
+                  padding: "1rem"
+                }}>
+                  <div style={{ marginBottom: "0.5rem", fontWeight: "600" }}>Error:</div>
+                  <div>{error}</div>
+                </div>
+              )}
+
+              {videoUrl && (
                 <video
-                  src={videoUrl}
                   controls
                   autoPlay
                   loop
-                  style={{ 
-                    maxWidth: "100%", 
-                    maxHeight: "100%",
-                    borderRadius: "6px", 
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    borderRadius: "8px",
                   }}
-                />
-              )}
-
-              {!videoUrl && !loading && !error && (
-                <div style={{
-                  color: "#94a3b8",
-                  fontSize: "1.125rem",
-                  textAlign: "center" as const,
-                }}>
-                  Upload an SVG file to generate animation
-                </div>
+                >
+                  <source src={videoUrl} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
               )}
             </div>
 
             {videoUrl && (
-              <div style={{ marginTop: "1rem", textAlign: "center" as const }}>
+              <div style={{ marginTop: "1rem" }}>
                 <a
                   href={videoUrl}
-                  download="manim_animation.mp4"
+                  download="animation.mp4"
                   style={{
-                    background: "#10b981",
-                    color: "#fff",
-                    borderRadius: "6px",
-                    padding: "8px 16px",
-                    fontSize: "14px",
-                    fontWeight: "600",
-                    textDecoration: "none",
-                    display: "inline-flex",
+                    display: "flex",
                     alignItems: "center",
-                    gap: "6px",
-                    transition: "all 0.2s ease",
+                    justifyContent: "center",
+                    gap: "0.5rem",
+                    padding: "0.75rem 1.5rem",
+                    background: colors.primary,
+                    color: "white",
+                    textDecoration: "none",
+                    borderRadius: "8px",
+                    fontSize: "0.875rem",
+                    fontWeight: "600",
+                    transition: "all 0.2s",
                   }}
                 >
-                  <FaDownload style={{ fontSize: 12 }} /> Download Video
+                  <FaDownload />
+                  Download Animation
                 </a>
               </div>
             )}

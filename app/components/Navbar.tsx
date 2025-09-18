@@ -2,12 +2,14 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaBars, FaTimes, FaGithub } from "react-icons/fa";
+import { FaBars, FaTimes, FaGithub, FaSun, FaMoon } from "react-icons/fa";
 import Image from "next/image";
+import { useTheme } from "./ThemeProvider";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const { theme, toggleTheme, currentTheme } = useTheme();
   const pathname = usePathname();
 
   useEffect(() => {
@@ -29,13 +31,14 @@ export default function Navbar() {
   };
 
   const navStyle = {
-    background: '#212129',
-    borderBottom: '1px solid #4c5265',
+    background: currentTheme.background,
+    borderBottom: `1px solid ${currentTheme.border}`,
     position: 'fixed' as const,
     top: 0,
     width: '100%',
     zIndex: 50,
     height: '64px',
+    transition: 'all 0.3s ease',
   };
 
   const containerStyle = {
@@ -57,17 +60,8 @@ export default function Navbar() {
     alignItems: 'center',
     gap: '12px',
     textDecoration: 'none',
-    color: '#f8fafc',
+    color: currentTheme.text,
     transition: 'opacity 0.2s ease',
-  };
-
-  const logoTextStyle = {
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
-    background: 'linear-gradient(135deg, #60a5fa 0%, #a855f7 100%)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
   };
 
   const desktopNavStyle = {
@@ -77,9 +71,9 @@ export default function Navbar() {
   };
 
   const getNavLinkStyle = (route: string) => ({
-    color: isActiveRoute(route) ? '#60a5fa' : '#94a3b8',
-    background: isActiveRoute(route) ? 'rgba(96, 165, 250, 0.1)' : 'transparent',
-    border: isActiveRoute(route) ? '1px solid rgba(96, 165, 250, 0.3)' : '1px solid transparent',
+    color: isActiveRoute(route) ? currentTheme.active : currentTheme.textSecondary,
+    background: isActiveRoute(route) ? currentTheme.activeBg : 'transparent',
+    border: isActiveRoute(route) ? `1px solid ${currentTheme.activeBorder}` : '1px solid transparent',
     padding: '8px 16px',
     borderRadius: '8px',
     fontSize: '0.875rem',
@@ -89,10 +83,23 @@ export default function Navbar() {
     position: 'relative' as const,
   });
 
-  const mobileButtonStyle = {
-    color: '#f8fafc',
+  const themeToggleStyle = {
+    color: currentTheme.textSecondary,
     background: 'transparent',
-    border: '1px solid #4c5265',
+    border: `1px solid ${currentTheme.border}`,
+    borderRadius: '6px',
+    cursor: 'pointer',
+    padding: '8px',
+    transition: 'all 0.2s ease',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
+
+  const mobileButtonStyle = {
+    color: currentTheme.text,
+    background: 'transparent',
+    border: `1px solid ${currentTheme.border}`,
     borderRadius: '6px',
     cursor: 'pointer',
     padding: '8px',
@@ -100,15 +107,15 @@ export default function Navbar() {
   };
 
   const mobileNavStyle = {
-    background: '#323949',
-    borderTop: '1px solid #4c5265',
+    background: currentTheme.mobileBg,
+    borderTop: `1px solid ${currentTheme.border}`,
     padding: '16px',
   };
 
   const getMobileLinkStyle = (route: string) => ({
-    color: isActiveRoute(route) ? '#60a5fa' : '#94a3b8',
-    background: isActiveRoute(route) ? 'rgba(96, 165, 250, 0.1)' : 'transparent',
-    border: isActiveRoute(route) ? '1px solid rgba(96, 165, 250, 0.3)' : '1px solid transparent',
+    color: isActiveRoute(route) ? currentTheme.active : currentTheme.textSecondary,
+    background: isActiveRoute(route) ? currentTheme.activeBg : 'transparent',
+    border: isActiveRoute(route) ? `1px solid ${currentTheme.activeBorder}` : '1px solid transparent',
     display: 'block',
     padding: '12px 16px',
     borderRadius: '8px',
@@ -135,7 +142,7 @@ export default function Navbar() {
             <span style={{
               fontSize: '1.5rem',
               fontWeight: 'bold',
-              color: 'white',
+              color: currentTheme.logoText,
             }}>ManiMagic</span>
           </Link>
 
@@ -147,13 +154,13 @@ export default function Navbar() {
                 style={getNavLinkStyle('/play')}
                 onMouseEnter={(e) => {
                   if (!isActiveRoute('/play')) {
-                    e.currentTarget.style.color = '#f8fafc';
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                    e.currentTarget.style.color = currentTheme.text;
+                    e.currentTarget.style.background = currentTheme.hoverBg;
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!isActiveRoute('/play')) {
-                    e.currentTarget.style.color = '#94a3b8';
+                    e.currentTarget.style.color = currentTheme.textSecondary;
                     e.currentTarget.style.background = 'transparent';
                   }
                 }}
@@ -165,13 +172,13 @@ export default function Navbar() {
                 style={getNavLinkStyle('/svg-to-animation')}
                 onMouseEnter={(e) => {
                   if (!isActiveRoute('/svg-to-animation')) {
-                    e.currentTarget.style.color = '#f8fafc';
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                    e.currentTarget.style.color = currentTheme.text;
+                    e.currentTarget.style.background = currentTheme.hoverBg;
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!isActiveRoute('/svg-to-animation')) {
-                    e.currentTarget.style.color = '#94a3b8';
+                    e.currentTarget.style.color = currentTheme.textSecondary;
                     e.currentTarget.style.background = 'transparent';
                   }
                 }}
@@ -183,13 +190,13 @@ export default function Navbar() {
                 style={getNavLinkStyle('/docs')}
                 onMouseEnter={(e) => {
                   if (!isActiveRoute('/docs')) {
-                    e.currentTarget.style.color = '#f8fafc';
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                    e.currentTarget.style.color = currentTheme.text;
+                    e.currentTarget.style.background = currentTheme.hoverBg;
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!isActiveRoute('/docs')) {
-                    e.currentTarget.style.color = '#94a3b8';
+                    e.currentTarget.style.color = currentTheme.textSecondary;
                     e.currentTarget.style.background = 'transparent';
                   }
                 }}
@@ -201,25 +208,42 @@ export default function Navbar() {
                 style={getNavLinkStyle('/examples')}
                 onMouseEnter={(e) => {
                   if (!isActiveRoute('/examples')) {
-                    e.currentTarget.style.color = '#f8fafc';
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                    e.currentTarget.style.color = currentTheme.text;
+                    e.currentTarget.style.background = currentTheme.hoverBg;
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!isActiveRoute('/examples')) {
-                    e.currentTarget.style.color = '#94a3b8';
+                    e.currentTarget.style.color = currentTheme.textSecondary;
                     e.currentTarget.style.background = 'transparent';
                   }
                 }}
               >
                 Examples
               </Link>
+              
+              {/* Theme Toggle Button */}
+              <button
+                onClick={toggleTheme}
+                style={themeToggleStyle}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = currentTheme.hoverBg;
+                  e.currentTarget.style.borderColor = currentTheme.active;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.borderColor = currentTheme.border;
+                }}
+              >
+                {theme === 'dark' ? <FaSun size={16} /> : <FaMoon size={16} />}
+              </button>
+              
               <a
                 href="https://github.com/Jagan-Dev-9/ManiMagic"
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
-                  color: '#94a3b8',
+                  color: currentTheme.textSecondary,
                   padding: '8px',
                   borderRadius: '6px',
                   transition: 'color 0.2s ease',
@@ -227,10 +251,10 @@ export default function Navbar() {
                   alignItems: 'center',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.color = '#f8fafc';
+                  e.currentTarget.style.color = currentTheme.active;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.color = '#94a3b8';
+                  e.currentTarget.style.color = currentTheme.textSecondary;
                 }}
               >
                 <FaGithub style={{ width: '20px', height: '20px' }} />
@@ -240,21 +264,39 @@ export default function Navbar() {
 
           {/* Mobile menu button */}
           {isMobile && (
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              style={mobileButtonStyle}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-              }}
-            >
-              {isMenuOpen ? 
-                <FaTimes style={{ width: '20px', height: '20px' }} /> : 
-                <FaBars style={{ width: '20px', height: '20px' }} />
-              }
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {/* Theme Toggle Button */}
+              <button
+                onClick={toggleTheme}
+                style={themeToggleStyle}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = currentTheme.hoverBg;
+                  e.currentTarget.style.borderColor = currentTheme.active;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.borderColor = currentTheme.border;
+                }}
+              >
+                {theme === 'dark' ? <FaSun size={16} /> : <FaMoon size={16} />}
+              </button>
+              
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                style={mobileButtonStyle}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = currentTheme.hoverBg;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                {isMenuOpen ? 
+                  <FaTimes style={{ width: '20px', height: '20px' }} /> : 
+                  <FaBars style={{ width: '20px', height: '20px' }} />
+                }
+              </button>
+            </div>
           )}
         </div>
 
@@ -293,9 +335,16 @@ export default function Navbar() {
               href="https://github.com/Jagan-Dev-9/ManiMagic"
               target="_blank"
               rel="noopener noreferrer"
-              style={getMobileLinkStyle('')}
+              style={{
+                ...getMobileLinkStyle(''),
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginTop: '8px',
+              }}
               onClick={() => setIsMenuOpen(false)}
             >
+              <FaGithub size={16} />
               GitHub
             </a>
           </div>

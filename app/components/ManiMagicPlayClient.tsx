@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { FaPlay, FaDownload, FaExclamationCircle, FaExpand, FaCompress, FaCode, FaCopy, FaCheck, FaSpinner, FaUpload } from "react-icons/fa";
 import CodeEditor from "./CodeEditor";
 import { validatePythonSyntax } from "../utils/pythonValidator";
+import { useTheme } from "./ThemeProvider";
 
 const DEFAULT_CODE = `from manim import *
 
@@ -18,12 +19,15 @@ class HelloManim(Scene):
         self.play(FadeOut(text), run_time=1)
 `;
 
-// Add some example templates for users
-const EXAMPLE_TEMPLATES = [
-  {
-    name: "Basic Shapes",
-    description: "Create and transform basic geometric shapes",
-    code: `from manim import *
+export default function ManiMagicPlayClient() {
+  const { theme, currentTheme } = useTheme();
+
+  // Template examples for Manim code
+  const templates = [
+    {
+      name: "Basic Shapes",
+      description: "Create and animate basic geometric shapes",
+      code: `from manim import *
 
 class BasicShapes(Scene):
     def construct(self):
@@ -31,16 +35,16 @@ class BasicShapes(Scene):
         circle = Circle(radius=1).set_color(BLUE)
         square = Square(side_length=2).set_color(RED)
         triangle = Triangle().set_color(GREEN)
-        
+
         # Position them
         circle.move_to(LEFT * 3)
         square.move_to(ORIGIN)
         triangle.move_to(RIGHT * 3)
-        
+
         # Animate
         self.play(Create(circle), Create(square), Create(triangle))
         self.wait(1)
-        
+
         # Transform
         self.play(
             Transform(circle, square.copy().move_to(LEFT * 3)),
@@ -48,11 +52,11 @@ class BasicShapes(Scene):
             Transform(triangle, circle.copy().move_to(RIGHT * 3))
         )
         self.wait(2)`
-  },
-  {
-    name: "Mathematical Function",
-    description: "Plot and animate mathematical functions",
-    code: `from manim import *
+    },
+    {
+      name: "Mathematical Function",
+      description: "Plot and animate mathematical functions",
+      code: `from manim import *
 import numpy as np
 
 class FunctionPlot(Scene):
@@ -64,165 +68,90 @@ class FunctionPlot(Scene):
             x_length=6,
             y_length=4
         )
-        
-        # Create function without LaTeX
+
+        # Create function
         func = axes.plot(lambda x: np.sin(x), color=BLUE)
-        
-        # Now that LaTeX is installed, you can use mathematical expressions:
-        # func_label = MathTex(r"y = \sin(x)").next_to(func, UP)
-        # For compatibility, we'll use Text() in this example:
         func_label = Text("y = sin(x)", font_size=24).next_to(func, UP)
-        
+
         # Animate
         self.play(Create(axes))
         self.play(Create(func), Write(func_label))
         self.wait(2)
-        
+
         # Transform to cosine
         cos_func = axes.plot(lambda x: np.cos(x), color=RED)
-        # cos_label = MathTex(r"y = \cos(x)").next_to(cos_func, UP)  # With LaTeX
         cos_label = Text("y = cos(x)", font_size=24).next_to(cos_func, UP)
-        
+
         self.play(
             Transform(func, cos_func),
             Transform(func_label, cos_label)
         )
         self.wait(2)`
-  },
-  {
-    name: "Simple Animation",
-    description: "Basic circle animations and transformations",
-    code: `from manim import *
+    },
+    {
+      name: "Simple Animation",
+      description: "Basic circle animations and transformations",
+      code: `from manim import *
 
 class SimpleAnimation(Scene):
     def construct(self):
         # Create a circle
         circle = Circle(radius=1)
         circle.set_fill(PINK, opacity=0.5)
-        
-        # Add it to the scene
-        self.add(circle)
-        
-        # Animate properties
-        self.play(circle.animate.set_fill(BLUE))
-        self.play(circle.animate.shift(UP))
+
+        # Animate the circle
+        self.play(Create(circle))
+        self.play(circle.animate.shift(LEFT * 2))
         self.play(circle.animate.scale(2))
-        self.play(circle.animate.rotate(PI))
-        
+        self.play(circle.animate.shift(RIGHT * 4))
+        self.play(circle.animate.scale(0.5))
         self.wait(1)`
-  },
-  {
-    name: "Working with SVG Files",
-    description: "How to use uploaded SVG files in animations",
-    code: `from manim import *
+    },
+    {
+      name: "Text Animation",
+      description: "Working with text objects and animations",
+      code: `from manim import *
 
-class SVGAnimation(Scene):
+class TextAnimation(Scene):
     def construct(self):
-        # Example of working with SVG files
-        # First upload an SVG file using the Upload button
-        
-        # Create some basic shapes as demonstration
-        shapes = VGroup(
-            Circle(radius=0.5).set_color(BLUE),
-            Square(side_length=1).set_color(RED),
-            Triangle().set_color(GREEN)
-        ).arrange(RIGHT, buff=1)
-        
-        # Animate the shapes
-        self.play(Create(shapes))
-        self.wait(1)
-        
-        # When you upload an SVG file, use:
-        # svg_object = SVGMobject("your_file.svg")
-        # svg_object.scale(0.5)  # Adjust size
-        # self.play(Create(svg_object))
-        
-        # For now, show text instruction
-        instruction = Text(
-            "Upload an SVG file to see it here!",
-            font_size=24
-        ).move_to(DOWN * 2)
-        
-        self.play(Write(instruction))
-        self.wait(2)`
-  },
-  {
-    name: "Mathematical Expressions (LaTeX)",
-    description: "Using LaTeX for beautiful mathematical notation",
-    code: `from manim import *
-import numpy as np
+        # Create text
+        text1 = Text("Welcome to ManiMagic!", font_size=36)
+        text2 = Text("Create Beautiful Animations", font_size=24)
+        text2.next_to(text1, DOWN, buff=0.5)
 
-class MathExpressions(Scene):
-    def construct(self):
-        # Now that LaTeX is installed, you can use MathTex!
-        
-        # Beautiful mathematical expressions
-        title = MathTex(r"\\text{Mathematical Expressions with LaTeX}")
-        title.scale(1.2).to_edge(UP)
-        
-        # Quadratic formula
-        quadratic = MathTex(
-            r"x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}"
-        ).scale(1.5)
-        
-        # Integral
-        integral = MathTex(
-            r"\\int_{-\\infty}^{\\infty} e^{-x^2} dx = \\sqrt{\\pi}"
-        ).scale(1.2)
-        
-        # Arrange them
-        formulas = VGroup(quadratic, integral).arrange(DOWN, buff=1)
-        
-        # Animate
-        self.play(Write(title))
+        # Animate text
+        self.play(Write(text1))
+        self.wait(0.5)
+        self.play(FadeIn(text2, shift=UP))
         self.wait(1)
-        self.play(Write(quadratic))
-        self.wait(1)
-        self.play(Write(integral))
-        self.wait(2)
-        
-        # Transform to simpler expression
-        simple = MathTex(r"E = mc^2").scale(2)
-        self.play(Transform(formulas, simple))
+
+        # Transform text
+        new_text = Text("Let's Animate!", font_size=48, color=BLUE)
+        self.play(Transform(text1, new_text), FadeOut(text2))
         self.wait(2)`
-  },
-  {
-    name: "Plugin Test (Simple)",
-    description: "Simple test of manim plugins (timeline and MF_Tools)",
-    code: `from manim import *
-from manim_play_timeline.timeline import Timeline
-from MF_Tools.easing import cubic_bezier
-from MF_Tools.color import color_gradient
+    },
+    {
+      name: "Plugin Test",
+      description: "Simple test of manim plugins",
+      code: `from manim import *
 
 class SimplePluginTest(Scene):
     def construct(self):
-        # Simple test of plugins without complex animations
-        
         # Create a basic shape
         dot = Dot(radius=0.3).set_color(RED).move_to(LEFT * 2)
-        
-        # Create a simple color gradient (fewer colors for performance)
-        colors = color_gradient([RED, BLUE, GREEN], 20)
-        
+
         # Add dot to scene
         self.add(dot)
-        
+
         # Simple movement animation
         self.play(dot.animate.move_to(RIGHT * 2).set_color(BLUE), run_time=2)
-        
-        # Change colors using gradient
-        for i, color in enumerate(colors[:10]):  # Use fewer colors
-            dot.set_color(color)
-            if i % 3 == 0:  # Only update every 3rd color for performance
-                self.wait(0.1)
-        
+
         # Simple scale animation
         self.play(dot.animate.scale(2).set_color(GREEN), run_time=1)
         self.wait(1)`
-  }
-];
+    }
+  ];
 
-export default function ManiMagicPlayClient() {
   const [code, setCode] = useState(DEFAULT_CODE);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [error, setError] = useState<{
@@ -820,7 +749,7 @@ import json
                   zIndex: 1000,
                   boxShadow: "0 10px 25px rgba(0, 0, 0, 0.5)"
                 }}>
-                  {EXAMPLE_TEMPLATES.map((example, index) => (
+                  {templates.map((example, index) => (
                     <button
                       key={index}
                       onClick={() => loadExample(example)}
@@ -835,7 +764,7 @@ import json
                         cursor: "pointer",
                         borderRadius: 4,
                         fontSize: 13,
-                        marginBottom: index < EXAMPLE_TEMPLATES.length - 1 ? 4 : 0
+                        marginBottom: index < templates.length - 1 ? 4 : 0
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.background = "#4c5265";
