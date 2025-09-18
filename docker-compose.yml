@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  manimagic:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      # Mount source code for development (optional)
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    # For development with hot reload
+    command: npm run dev
+    # For production
+    # command: npm start
+
+  # Optional: Separate Python service for heavy computations
+  # python-worker:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.python
+  #   environment:
+  #     - PYTHONPATH=/app
+  #   volumes:
+  #     - ./manimagic-play:/app
+  #   command: python -c "import manim; print('Manim ready')"
