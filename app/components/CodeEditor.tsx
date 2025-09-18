@@ -16,6 +16,7 @@ interface CodeEditorProps {
   errorLine?: number;
   errorColumn?: number;
   errorMessage?: string;
+  theme?: 'dark' | 'light';
 }
 
 // Error widget class
@@ -92,7 +93,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   height = '400px',
   errorLine,
   errorColumn,
-  errorMessage 
+  errorMessage,
+  theme = 'dark'
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -105,7 +107,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       extensions: [
         basicSetup,
         python(),
-        oneDark,
+        ...(theme === 'dark' ? [oneDark] : []),
         errorField, // Add error highlighting support
         keymap.of([indentWithTab]), // Enable Tab for indentation
         indentationMarkers(), // Add visible indentation guides
@@ -131,7 +133,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
             borderRadius: '8px',
           },
           '.cm-editor.cm-focused': {
-            outline: '2px solid rgba(96, 165, 250, 0.3)',
+            outline: `2px solid ${theme === 'dark' ? 'rgba(96, 165, 250, 0.3)' : 'rgba(69, 72, 102, 0.3)'}`,
             outlineOffset: '-2px',
           },
           '.cm-scroller': {
@@ -143,22 +145,22 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
             width: '12px',
           },
           '.cm-scroller::-webkit-scrollbar-track': {
-            background: '#1e293b',
+            background: theme === 'dark' ? '#1e293b' : '#f1f5f9',
             borderRadius: '6px',
           },
           '.cm-scroller::-webkit-scrollbar-thumb': {
-            background: '#3b82f6',
+            background: theme === 'dark' ? '#3b82f6' : '#94a3b8',
             borderRadius: '6px',
-            border: '2px solid #1e293b',
+            border: `2px solid ${theme === 'dark' ? '#1e293b' : '#f1f5f9'}`,
           },
           '.cm-scroller::-webkit-scrollbar-thumb:hover': {
-            background: '#2563eb',
+            background: theme === 'dark' ? '#2563eb' : '#64748b',
           },
           '.cm-scroller::-webkit-scrollbar-corner': {
-            background: '#1e293b',
+            background: theme === 'dark' ? '#1e293b' : '#f1f5f9',
           },
           '.cm-lineNumbers': {
-            color: '#6b7280',
+            color: theme === 'dark' ? '#6b7280' : '#9ca3af',
             backgroundColor: 'transparent',
             paddingRight: '8px',
           },
@@ -170,7 +172,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           },
           // Error styling
           '.error-line': {
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            backgroundColor: theme === 'dark' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.05)',
             borderLeft: '3px solid #ef4444',
             paddingLeft: '13px',
           },
@@ -180,11 +182,11 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
             cursor: 'help',
           },
           '.cm-cursor': {
-            borderLeftColor: '#60a5fa',
+            borderLeftColor: theme === 'dark' ? '#60a5fa' : '#454866',
             borderLeftWidth: '2px',
           },
           '.cm-selectionBackground': {
-            backgroundColor: 'rgba(96, 165, 250, 0.3) !important',
+            backgroundColor: theme === 'dark' ? 'rgba(96, 165, 250, 0.3) !important' : 'rgba(69, 72, 102, 0.3) !important',
           },
           // Enhanced indentation markers
           '.cm-indent-markers .cm-indent-marker': {
