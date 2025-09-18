@@ -4,7 +4,7 @@ import path from "path";
 import os from "os";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     let code: string;
     let uploadedFiles: any[] = [];
