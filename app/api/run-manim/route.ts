@@ -232,21 +232,29 @@ def interpolate_colors(color1, color2, steps):
     console.log("Processing uploaded files:", uploadedFiles?.length || 0);
     if (uploadedFiles && uploadedFiles.length > 0) {
       for (const file of uploadedFiles) {
-        console.log("Writing file:", file.name, "Content type:", typeof file.content);
+        console.log("Writing file:", file.name, "Content type:", typeof file.content, "Length:", file.content?.length);
         const filePath = path.join(tempDir, file.name);
         
-        if (typeof file.content === 'string') {
-          if (file.content.startsWith('data:')) {
-            // Handle base64 encoded files (images)
-            const base64Data = file.content.split(',')[1];
-            const buffer = Buffer.from(base64Data, 'base64');
-            fs.writeFileSync(filePath, buffer);
-            console.log("✓ Wrote base64 file:", file.name);
+        try {
+          if (typeof file.content === 'string') {
+            if (file.content.startsWith('data:')) {
+              // Handle base64 encoded files (images)
+              const base64Data = file.content.split(',')[1];
+              const buffer = Buffer.from(base64Data, 'base64');
+              fs.writeFileSync(filePath, buffer);
+              console.log("✓ Wrote base64 file:", file.name);
+            } else {
+              // Handle text files (SVG content)
+              fs.writeFileSync(filePath, file.content, 'utf8');
+              console.log("✓ Wrote SVG file:", file.name, "Size:", file.content.length, "bytes");
+            }
           } else {
-            // Handle text files (SVG content)
-            fs.writeFileSync(filePath, file.content, 'utf8');
-            console.log("✓ Wrote SVG file:", file.name);
+            console.log("❌ Invalid file content type for:", file.name, typeof file.content);
           }
+        } catch (fileError) {
+          console.error("❌ Error writing file:", file.name, fileError);
+          const errorMessage = fileError instanceof Error ? fileError.message : String(fileError);
+          throw new Error(`Failed to write file ${file.name}: ${errorMessage}`);
         }
       }
       

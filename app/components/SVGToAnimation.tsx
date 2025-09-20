@@ -102,13 +102,23 @@ class GitLogoRevealWrite(Scene):
 
       const code = codeTemplate + taglineCode;
 
-      const formData = new FormData();
-      formData.append("code", code);
-      formData.append("file", svgFile);
+      // Read SVG file content as text
+      const svgContent = await svgFile.text();
+      
+      // Send as JSON instead of FormData for better server compatibility
+      const requestBody = {
+        code: code,
+        files: {
+          [svgFile.name]: svgContent
+        }
+      };
 
       const response = await fetch("/api/run-manim", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
       });
 
       if (response.ok) {
@@ -131,6 +141,7 @@ class GitLogoRevealWrite(Scene):
         }
       }
     } catch (err) {
+      console.error("Error generating animation:", err);
       setError("Network error occurred");
     } finally {
       setLoading(false);
