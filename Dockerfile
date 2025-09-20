@@ -46,6 +46,8 @@ RUN apk add --no-cache \
     py3-wheel \
     py3-setuptools \
     ffmpeg \
+    ffmpeg-dev \
+    ffmpeg-libs \
     cairo-dev \
     pango-dev \
     gdk-pixbuf-dev \
@@ -64,7 +66,9 @@ RUN apk add --no-cache \
     gcc \
     g++ \
     musl-dev \
-    linux-headers
+    linux-headers \
+    pkgconf \
+    pkgconfig
 
 # Install Manim and dependencies directly in Alpine (using --break-system-packages for Docker)
 RUN pip3 install --no-cache-dir --break-system-packages \
