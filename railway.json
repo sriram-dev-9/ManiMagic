@@ -15,7 +15,8 @@
     "production": {
       "variables": {
         "NODE_ENV": "production",
-        "PORT": "3000"
+        "PORT": "${{PORT}}",
+        "HOSTNAME": "0.0.0.0"
       }
     }
   }

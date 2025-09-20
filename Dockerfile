@@ -60,8 +60,13 @@ COPY . .
 # Build the Next.js application
 RUN npm run build
 
-# Expose port
+# Expose port (Railway will override this with $PORT)
 EXPOSE 3000
+
+# Set environment variables for Railway
+ENV NODE_ENV=production
+ENV HOSTNAME=0.0.0.0
+ENV PORT=3000
 
 # Start the application
 CMD ["npm", "start"]
