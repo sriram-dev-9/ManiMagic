@@ -11,16 +11,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Check if request is FormData (for file uploads) or JSON
     const contentType = request.headers.get("content-type");
+    console.log("Request content-type:", contentType);
     
     if (contentType?.includes("multipart/form-data")) {
       // Handle FormData with file uploads
       const formData = await request.formData();
       code = formData.get("code") as string;
+      console.log("FormData code length:", code?.length || 0);
       
       // Handle uploaded files
       const fileEntries = formData.getAll("file");
+      console.log("Number of files in FormData:", fileEntries.length);
+      
       for (const file of fileEntries) {
         if (file instanceof File) {
+          console.log("Processing file:", file.name, "type:", file.type, "size:", file.size);
           uploadedFiles.push({
             name: file.name,
             size: file.size,
@@ -380,9 +385,10 @@ def interpolate_colors(color1, color2, steps):
     });
 
   } catch (error) {
+    console.error("API Error:", error);
     return NextResponse.json(
-      { error: "Invalid request" }, 
-      { status: 400 }
+      { error: `Server error: ${error instanceof Error ? error.message : 'Unknown error'}` }, 
+      { status: 500 }
     );
   }
 }

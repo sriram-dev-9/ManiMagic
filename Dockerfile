@@ -67,5 +67,5 @@ ENV PORT=8080
 # Verify Python and Manim installation
 RUN python --version && python -c "import manim; print('Manim successfully imported')"
 
-# Start the application
-CMD ["npm", "start"]
+# Start the application using standalone server
+CMD ["node", ".next/standalone/server.js"]
