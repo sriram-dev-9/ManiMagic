@@ -66,8 +66,8 @@ RUN apk add --no-cache \
     musl-dev \
     linux-headers
 
-# Install Manim and dependencies directly in Alpine
-RUN pip3 install --no-cache-dir \
+# Install Manim and dependencies directly in Alpine (using --break-system-packages for Docker)
+RUN pip3 install --no-cache-dir --break-system-packages \
     manim \
     numpy \
     scipy \
