@@ -41,7 +41,10 @@ FROM node:18-alpine as node-base
 # Install Python and system deps for Node.js stage including required libraries
 RUN apk add --no-cache \
     python3 \
+    python3-dev \
     py3-pip \
+    py3-wheel \
+    py3-setuptools \
     ffmpeg \
     cairo-dev \
     pango-dev \
@@ -57,20 +60,29 @@ RUN apk add --no-cache \
     tcl-dev \
     tiff-dev \
     tk-dev \
-    zlib-dev
+    zlib-dev \
+    gcc \
+    g++ \
+    musl-dev \
+    linux-headers
 
-# Copy Python environment from python-base
-COPY --from=python-base /usr/local/lib/python3.11 /usr/local/lib/python3.11
-COPY --from=python-base /usr/local/bin /usr/local/bin
+# Install Manim and dependencies directly in Alpine
+RUN pip3 install --no-cache-dir \
+    manim \
+    numpy \
+    scipy \
+    matplotlib \
+    pillow \
+    opencv-python \
+    jupyter \
+    notebook \
+    pycairo \
+    setuptools \
+    wheel
 
-# Create symlinks for Python (use Alpine's python3 and link to copied binaries)
-RUN ln -sf /usr/local/bin/python3.11 /usr/local/bin/python && \
-    ln -sf /usr/local/bin/python3.11 /usr/local/bin/python3 && \
-    ln -sf /usr/local/bin/pip3.11 /usr/local/bin/pip && \
-    ln -sf /usr/local/bin/pip3.11 /usr/local/bin/pip3
-
-# Set Python path and ensure /usr/local/bin is first in PATH
-ENV PYTHONPATH=/usr/local/lib/python3.11/site-packages
+# Set Python path and ensure python3 is accessible as python
+RUN ln -sf /usr/bin/python3 /usr/bin/python
+ENV PYTHONPATH=/usr/lib/python3.11/site-packages:/usr/local/lib/python3.11/site-packages
 ENV PATH=/usr/local/bin:$PATH
 
 # Set working directory
@@ -99,8 +111,8 @@ ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV PORT=8080
 
-# Verify Python and Manim installation (use full path)
-RUN /usr/local/bin/python3.11 --version && /usr/local/bin/python3.11 -c "import manim; print('Manim successfully imported')"
+# Verify Python and Manim installation (use Alpine's python3)
+RUN python3 --version && python3 -c "import manim; print('Manim successfully imported')"
 
 # Start the application
 CMD ["npm", "start"]
