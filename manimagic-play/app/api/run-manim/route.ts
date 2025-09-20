@@ -366,3 +366,5 @@ def interpolate_colors(color1, color2, steps):
     );
   }
 }
+
+

@@ -1,7 +1,7 @@
 import { spawn } from "child_process";
-import fs from "fs";
+import fs, { link } from "fs";
 import path from "path";
-import os from "os";
+import os, { endianness } from "os";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -386,3 +386,71 @@ def interpolate_colors(color1, color2, steps):
     );
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
