@@ -79,8 +79,8 @@ WORKDIR /app
 # Copy package files first (for better caching)
 COPY package*.json ./
 
-# Install Node.js dependencies (this layer will be cached if package.json doesn't change)
-RUN npm ci --only=production
+# Install ALL dependencies (including dev dependencies needed for build)
+RUN npm ci
 
 # Copy source code (this layer changes most frequently)
 COPY . .
@@ -88,13 +88,16 @@ COPY . .
 # Build the Next.js application
 RUN npm run build
 
+# Remove dev dependencies after build to reduce image size
+RUN npm prune --production
+
 # Expose port (Railway will override this with $PORT)
-EXPOSE 3000
+EXPOSE 8080
 
 # Set environment variables for Railway
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
-ENV PORT=3000
+ENV PORT=8080
 
 # Verify Python and Manim installation
 RUN python --version && python -c "import manim; print('Manim successfully imported')"

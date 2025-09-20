@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: 'standalone',
   env: {
-    PORT: process.env.PORT || '3000',
+    PORT: process.env.PORT || '8080',
   },
   // Ensure the app works with Railway's domain setup
   async headers() {
