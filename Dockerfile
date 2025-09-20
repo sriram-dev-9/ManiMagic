@@ -63,13 +63,13 @@ RUN apk add --no-cache \
 COPY --from=python-base /usr/local/lib/python3.11 /usr/local/lib/python3.11
 COPY --from=python-base /usr/local/bin /usr/local/bin
 
-# Create symlinks for Python
-RUN ln -sf /usr/local/bin/python3.11 /usr/bin/python && \
-    ln -sf /usr/local/bin/python3.11 /usr/bin/python3 && \
-    ln -sf /usr/local/bin/pip3.11 /usr/bin/pip && \
-    ln -sf /usr/local/bin/pip3.11 /usr/bin/pip3
+# Create symlinks for Python (use Alpine's python3 and link to copied binaries)
+RUN ln -sf /usr/local/bin/python3.11 /usr/local/bin/python && \
+    ln -sf /usr/local/bin/python3.11 /usr/local/bin/python3 && \
+    ln -sf /usr/local/bin/pip3.11 /usr/local/bin/pip && \
+    ln -sf /usr/local/bin/pip3.11 /usr/local/bin/pip3
 
-# Set Python path
+# Set Python path and ensure /usr/local/bin is first in PATH
 ENV PYTHONPATH=/usr/local/lib/python3.11/site-packages
 ENV PATH=/usr/local/bin:$PATH
 
@@ -99,8 +99,8 @@ ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV PORT=8080
 
-# Verify Python and Manim installation
-RUN python --version && python -c "import manim; print('Manim successfully imported')"
+# Verify Python and Manim installation (use full path)
+RUN /usr/local/bin/python3.11 --version && /usr/local/bin/python3.11 -c "import manim; print('Manim successfully imported')"
 
 # Start the application
 CMD ["npm", "start"]
