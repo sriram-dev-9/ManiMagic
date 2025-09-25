@@ -1,5 +1,5 @@
 # Use multi-stage build for Python + Node.js
-FROM python:3.11-slim as python-base
+FROM python:3.11-slim AS python-base
 
 # Install system dependencies for Manim
 RUN apt-get update && apt-get install -y \
@@ -36,7 +36,7 @@ RUN pip install --no-cache-dir \
     wheel
 
 # Node.js stage
-FROM node:18-alpine as node-base
+FROM node:20-alpine AS node-base
 
 # Install Python and system deps for Node.js stage
 RUN apk add --no-cache python3 py3-pip ffmpeg cairo-dev pango-dev gdk-pixbuf-dev
@@ -56,6 +56,10 @@ RUN npm ci
 
 # Copy source code
 COPY . .
+
+# Set placeholder environment variables for build
+ENV NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder-key-for-build
 
 # Build the Next.js application
 RUN npm run build
