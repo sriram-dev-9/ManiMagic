@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -H 0.0.0.0 -p ${PORT:-8080}",
     "lint": "next lint",
     "docker:build": "docker build -t manimagic .",
     "docker:run": "docker run -p 3000:3000 manimagic",
