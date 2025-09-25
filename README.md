@@ -2,12 +2,13 @@
 
 **Create stunning mathematical animations with ease**
 
-ManiMagic is a web-based interactive playground for creating beautiful mathematical animations using the powerful Manim library. Built with Next.js and featuring a modern, responsive interface, ManiMagic makes mathematical visualization accessible to everyone.
+ManiMagic is a web-based interactive playground for creating beautiful mathematical animations using the powerful Manim library. Built with Next.js and featuring a modern, responsive interface with Supabase authentication and cloud storage, ManiMagic makes mathematical visualization accessible to everyone.
 
 [![GitHub stars](https://img.shields.io/github/stars/Jagan-Dev-9/ManiMagic)](https://github.com/Jagan-Dev-9/ManiMagic)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Next.js](https://img.shields.io/badge/Next.js-15.4.6-black)](https://nextjs.org/)
 [![Manim](https://img.shields.io/badge/Manim-Community-blue)](https://manim.community/)
+[![Supabase](https://img.shields.io/badge/Supabase-Authentication-green)](https://supabase.com/)
 
 ## ✨ Features
 
@@ -17,6 +18,13 @@ ManiMagic is a web-based interactive playground for creating beautiful mathemati
 - **Real-time preview** - see your animations come to life instantly
 - **Resizable panels** for optimal workspace customization
 - **Template library** with ready-to-use examples
+
+### 🔐 **User Authentication & Cloud Storage**
+- **Secure authentication** powered by Supabase with email/password and OAuth
+- **User profiles** with customizable display names and avatars
+- **Project management** - save, organize, and share your animations
+- **Cloud storage** for animations, SVGs, and user assets
+- **Privacy controls** - make projects public or keep them private
 
 ### 🎨 **Advanced Code Editor**
 - **CodeMirror integration** with Python syntax highlighting
@@ -69,12 +77,32 @@ ManiMagic is a web-based interactive playground for creating beautiful mathemati
 - **[@codemirror/theme-one-dark](https://www.npmjs.com/package/@codemirror/theme-one-dark)** - Dark theme
 - **[@replit/codemirror-indentation-markers](https://www.npmjs.com/package/@replit/codemirror-indentation-markers)** - Visual indentation guides
 
-## 🚀 Getting Started
+## �️ Tech Stack
+
+### Frontend
+- **[Next.js 15.4.6](https://nextjs.org/)** - React framework with App Router
+- **[TypeScript](https://www.typescriptlang.org/)** - Type-safe JavaScript
+- **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first CSS framework
+- **[CodeMirror 6](https://codemirror.net/)** - Advanced code editor
+
+### Backend & Authentication
+- **[Supabase](https://supabase.com/)** - Authentication, database, and storage
+- **[Supabase Auth](https://supabase.com/auth)** - Email/password and OAuth authentication
+- **[Supabase Storage](https://supabase.com/storage)** - File storage for animations and assets
+- **[PostgreSQL](https://www.postgresql.org/)** - Relational database via Supabase
+
+### Animation Engine
+- **[Manim Community](https://manim.community/)** - Mathematical animation engine
+- **Python subprocess** - Server-side animation rendering
+- **MP4 export** - High-quality video output
+
+## �🚀 Getting Started
 
 ### Prerequisites
 - **Node.js 18+** and npm/yarn
 - **Python 3.8+** with pip
 - **Manim Community Edition** installed
+- **Supabase account** for authentication and storage
 
 ### Installation
 
@@ -89,18 +117,47 @@ ManiMagic is a web-based interactive playground for creating beautiful mathemati
    npm install
    ```
 
-3. **Install Python dependencies**
+3. **Set up Supabase Authentication & Database**
+   
+   a. **Create a Supabase project**
+   - Go to [Supabase](https://supabase.com/) and create a new project
+   - Wait for the project to be set up (this may take a few minutes)
+   
+   b. **Configure environment variables**
+   ```bash
+   # Copy the environment template
+   cp .env.example .env.local
+   ```
+   
+   Edit `.env.local` with your Supabase credentials:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+   
+   c. **Set up database schema**
+   - Open your Supabase dashboard
+   - Go to the SQL editor
+   - Copy and run the contents of `supabase-setup.sql`
+   - This will create the necessary tables, policies, and storage buckets
+   
+   d. **Configure authentication providers (optional)**
+   - In your Supabase dashboard, go to Authentication > Providers
+   - Enable Google/GitHub OAuth if you want social login
+   - Add your OAuth app credentials
+
+4. **Install Python dependencies**
    ```bash
    pip install manim
    pip install manim[jupyterlab]  # Optional: for Jupyter integration
    ```
 
-4. **Run the development server**
+5. **Run the development server**
    ```bash
    npm run dev
    ```
 
-5. **Open your browser**
+6. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
 ### Docker Setup (Alternative)

@@ -2,6 +2,7 @@
 import React from "react";
 import Navbar from "../components/Navbar";
 import ManiMagicPlayClientWrapper from "../components/ManiMagicPlayClientWrapper";
+import AuthStatus from "../components/AuthStatus";
 import { useTheme } from "../components/ThemeProvider";
 
 export default function PlayPage() {
@@ -32,6 +33,10 @@ export default function PlayPage() {
         margin: 0,
         transition: 'background 0.3s ease'
       }}>
+        {/* Auth status component for testing */}
+        <div style={{ padding: '16px' }}>
+          <AuthStatus />
+        </div>
         <ManiMagicPlayClientWrapper />
       </div>
     </div>

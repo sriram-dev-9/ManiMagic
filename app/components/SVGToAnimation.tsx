@@ -1,18 +1,25 @@
 ﻿"use client";
 import React, { useState, useCallback } from "react";
-import { FaUpload, FaPlay, FaDownload, FaEdit } from "react-icons/fa";
+import { FaUpload, FaPlay, FaDownload, FaEdit, FaShare } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import Navbar from "./Navbar";
 import { useTheme } from "./ThemeProvider";
+import VideoUploadModal from "./VideoUploadModal";
+import { ToastManager } from "./Toast";
+import { useToast } from "../../hooks/useToast";
 
 export default function SVGToAnimation() {
   const { theme } = useTheme();
+  const { toasts, addToast, removeToast } = useToast();
   const [dragActive, setDragActive] = useState(false);
   const [svgFile, setSvgFile] = useState<File | null>(null);
   const [tagline, setTagline] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
+  const [videoBlob, setVideoBlob] = useState<Blob | null>(null);
+  const [generatedCode, setGeneratedCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const router = useRouter();
 
   const isDark = theme === 'dark';
@@ -68,6 +75,7 @@ export default function SVGToAnimation() {
     setLoading(true);
     setError("");
     setVideoUrl("");
+    setVideoBlob(null);
 
     try {
       const codeTemplate = `from manim import *
@@ -101,6 +109,7 @@ class GitLogoRevealWrite(Scene):
         self.wait(2)`;
 
       const code = codeTemplate + taglineCode;
+      setGeneratedCode(code);
 
       // Read SVG file content as text
       const svgContent = await svgFile.text();
@@ -125,9 +134,10 @@ class GitLogoRevealWrite(Scene):
         const contentType = response.headers.get("content-type");
         
         if (contentType?.includes("video/mp4")) {
-          const videoBlob = await response.blob();
-          const videoUrl = URL.createObjectURL(videoBlob);
-          setVideoUrl(videoUrl);
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          setVideoUrl(url);
+          setVideoBlob(blob);
         } else {
           const result = await response.json();
           setError(result.error || "Failed to generate animation");
@@ -457,7 +467,7 @@ class GitLogoRevealWrite(Scene):
             </div>
 
             {videoUrl && (
-              <div style={{ marginTop: "1rem" }}>
+              <div style={{ marginTop: "1rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
                 <a
                   href={videoUrl}
                   download="animation.mp4"
@@ -474,16 +484,67 @@ class GitLogoRevealWrite(Scene):
                     fontSize: "0.875rem",
                     fontWeight: "600",
                     transition: "all 0.2s",
+                    flex: "1",
+                    minWidth: "150px"
                   }}
                 >
                   <FaDownload />
-                  Download Animation
+                  Download
                 </a>
+                
+                <button
+                  onClick={() => setShowUploadModal(true)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "0.5rem",
+                    padding: "0.75rem 1.5rem",
+                    background: colors.success,
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontSize: "0.875rem",
+                    fontWeight: "600",
+                    transition: "all 0.2s",
+                    cursor: "pointer",
+                    flex: "1",
+                    minWidth: "150px"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.opacity = '0.9';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = '1';
+                  }}
+                >
+                  <FaShare />
+                  Share to Community
+                </button>
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Upload Modal */}
+      <VideoUploadModal
+        isOpen={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        videoBlob={videoBlob || undefined}
+        title={svgFile ? `${svgFile.name.replace('.svg', '')} Animation` : ''}
+        code={generatedCode}
+        onUploadSuccess={() => {
+          // Show success toast and redirect to community
+          addToast("🎉 Animation shared successfully! Redirecting to community...", "success", 3000);
+          setTimeout(() => {
+            router.push('/community');
+          }, 1500);
+        }}
+      />
+
+      {/* Toast Manager */}
+      <ToastManager toasts={toasts} onRemoveToast={removeToast} />
 
       <style>{`
         @keyframes spin {

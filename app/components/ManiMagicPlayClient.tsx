@@ -1,9 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { FaPlay, FaDownload, FaExclamationCircle, FaExpand, FaCompress, FaCode, FaCopy, FaCheck, FaSpinner, FaUpload } from "react-icons/fa";
+import { FaPlay, FaDownload, FaExclamationCircle, FaExpand, FaCompress, FaCode, FaCopy, FaCheck, FaSpinner, FaUpload, FaShare } from "react-icons/fa";
 import CodeEditor from "./CodeEditor";
 import { validatePythonSyntax } from "../utils/pythonValidator";
 import { useTheme } from "./ThemeProvider";
+import VideoUploadModal from "./VideoUploadModal";
+import { ToastManager } from "./Toast";
+import { useToast } from "../../hooks/useToast";
 
 const DEFAULT_CODE = `from manim import *
 
@@ -21,6 +24,7 @@ class HelloManim(Scene):
 
 export default function ManiMagicPlayClient() {
   const { theme, currentTheme } = useTheme();
+  const { toasts, addToast, removeToast } = useToast();
 
   // Define colors based on current theme
   const colors = {
@@ -195,6 +199,8 @@ class SimplePluginTest(Scene):
   const [uploadedFiles, setUploadedFiles] = useState<{[key: string]: string}>({});
   const [isDragOver, setIsDragOver] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [videoBlob, setVideoBlob] = useState<Blob | null>(null);
 
   const loadExample = (example: { name: string; description: string; code: string }) => {
     setCode(example.code);
@@ -393,6 +399,7 @@ class SimplePluginTest(Scene):
     setLoading(true);
     setError(null);
     setVideoUrl(null);
+    setVideoBlob(null);
     try {
       const res = await fetch("/api/run-manim", {
         method: "POST",
@@ -410,6 +417,7 @@ class SimplePluginTest(Scene):
       }
       const blob = await res.blob();
       setVideoUrl(URL.createObjectURL(blob));
+      setVideoBlob(blob);
     } catch (e: any) {
       setError({
         type: 'Network Error',
@@ -1211,25 +1219,53 @@ import json
               </div>
               
               {videoUrl && (
-                <a
-                  href={videoUrl}
-                  download="manim_animation.mp4"
-                  style={{
-                    background: colors.success,
-                    color: "#fff",
-                    borderRadius: 6,
-                    padding: "6px 12px",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    textDecoration: "none",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    transition: "all 0.2s ease"
-                  }}
-                >
-                  <FaDownload style={{ fontSize: 11 }} /> Download
-                </a>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <a
+                    href={videoUrl}
+                    download="manim_animation.mp4"
+                    style={{
+                      background: colors.success,
+                      color: "#fff",
+                      borderRadius: 6,
+                      padding: "6px 12px",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      textDecoration: "none",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      transition: "all 0.2s ease"
+                    }}
+                  >
+                    <FaDownload style={{ fontSize: 11 }} /> Download
+                  </a>
+                  
+                  <button
+                    onClick={() => setShowUploadModal(true)}
+                    style={{
+                      background: colors.active,
+                      color: "#fff",
+                      borderRadius: 6,
+                      padding: "6px 12px",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      border: "none",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      transition: "all 0.2s ease"
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.opacity = '0.9';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.opacity = '1';
+                    }}
+                  >
+                    <FaShare style={{ fontSize: 11 }} /> Share
+                  </button>
+                </div>
               )}
             </div>
 
@@ -1494,6 +1530,23 @@ import json
           </div>
         </footer>
       </div>
+
+      {/* Upload Modal */}
+      <VideoUploadModal
+        isOpen={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        videoBlob={videoBlob || undefined}
+        title="My Manim Animation"
+        code={code}
+        onUploadSuccess={() => {
+          // Show success toast
+          addToast("🎉 Animation shared successfully! Check the community page.", "success", 5000);
+          setShowUploadModal(false);
+        }}
+      />
+
+      {/* Toast Manager */}
+      <ToastManager toasts={toasts} onRemoveToast={removeToast} />
     </>
   );
 }

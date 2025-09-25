@@ -2,14 +2,17 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaBars, FaTimes, FaGithub, FaSun, FaMoon } from "react-icons/fa";
+import { FaBars, FaTimes, FaGithub, FaSun, FaMoon, FaUser, FaSignOutAlt } from "react-icons/fa";
 import Image from "next/image";
 import { useTheme } from "./ThemeProvider";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const { theme, toggleTheme, currentTheme } = useTheme();
+  const { user, signOut, loading } = useAuth();
   const pathname = usePathname();
 
   useEffect(() => {
@@ -17,15 +20,29 @@ export default function Navbar() {
       setIsMobile(window.innerWidth < 768);
     };
 
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('[data-user-menu]')) {
+        setShowUserMenu(false);
+      }
+    };
+
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
+    document.addEventListener('click', handleClickOutside);
 
-    return () => window.removeEventListener('resize', checkScreenSize);
+    return () => {
+      window.removeEventListener('resize', checkScreenSize);
+      document.removeEventListener('click', handleClickOutside);
+    };
   }, []);
 
   const isActiveRoute = (route: string) => {
     if (route === '/play') {
       return pathname === '/play' || pathname === '/playground';
+    }
+    if (route === '/community') {
+      return pathname === '/community' || pathname?.startsWith('/project/') || pathname === '/upload';
     }
     return pathname === route;
   };
@@ -186,6 +203,24 @@ export default function Navbar() {
                 SVG to Animation
               </Link>
               <Link 
+                href="/community" 
+                style={getNavLinkStyle('/community')}
+                onMouseEnter={(e) => {
+                  if (!isActiveRoute('/community')) {
+                    e.currentTarget.style.color = currentTheme.text;
+                    e.currentTarget.style.background = currentTheme.hoverBg;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActiveRoute('/community')) {
+                    e.currentTarget.style.color = currentTheme.textSecondary;
+                    e.currentTarget.style.background = 'transparent';
+                  }
+                }}
+              >
+                Community
+              </Link>
+              <Link 
                 href="/docs" 
                 style={getNavLinkStyle('/docs')}
                 onMouseEnter={(e) => {
@@ -259,6 +294,131 @@ export default function Navbar() {
               >
                 <FaGithub style={{ width: '20px', height: '20px' }} />
               </a>
+
+              {/* Authentication UI */}
+              {!loading && (
+                <>
+                  {user ? (
+                    <div style={{ position: 'relative' }} data-user-menu>
+                      <button
+                        onClick={() => setShowUserMenu(!showUserMenu)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '8px 12px',
+                          background: currentTheme.hoverBg,
+                          border: `1px solid ${currentTheme.border}`,
+                          borderRadius: '8px',
+                          color: currentTheme.text,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                        }}
+                      >
+                        <FaUser size={14} />
+                        <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>
+                          {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
+                        </span>
+                      </button>
+                      
+                      {showUserMenu && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: '100%',
+                            right: 0,
+                            marginTop: '8px',
+                            background: currentTheme.background,
+                            border: `1px solid ${currentTheme.border}`,
+                            borderRadius: '8px',
+                            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                            minWidth: '160px',
+                            zIndex: 1000,
+                          }}
+                        >
+                          <button
+                            onClick={async () => {
+                              await signOut();
+                              setShowUserMenu(false);
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              width: '100%',
+                              padding: '12px 16px',
+                              background: 'transparent',
+                              border: 'none',
+                              color: currentTheme.textSecondary,
+                              cursor: 'pointer',
+                              fontSize: '0.875rem',
+                              borderRadius: '8px',
+                              transition: 'all 0.2s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = currentTheme.hoverBg;
+                              e.currentTarget.style.color = currentTheme.text;
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'transparent';
+                              e.currentTarget.style.color = currentTheme.textSecondary;
+                            }}
+                          >
+                            <FaSignOutAlt size={14} />
+                            Sign Out
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Link
+                        href="/login"
+                        style={{
+                          color: currentTheme.textSecondary,
+                          textDecoration: 'none',
+                          padding: '8px 12px',
+                          borderRadius: '6px',
+                          fontSize: '0.875rem',
+                          fontWeight: '500',
+                          transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = currentTheme.text;
+                          e.currentTarget.style.background = currentTheme.hoverBg;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = currentTheme.textSecondary;
+                          e.currentTarget.style.background = 'transparent';
+                        }}
+                      >
+                        Sign In
+                      </Link>
+                      <Link
+                        href="/signup"
+                        style={{
+                          background: currentTheme.active,
+                          color: 'white',
+                          textDecoration: 'none',
+                          padding: '8px 16px',
+                          borderRadius: '6px',
+                          fontSize: '0.875rem',
+                          fontWeight: '500',
+                          transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-1px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                        }}
+                      >
+                        Sign Up
+                      </Link>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           )}
 
