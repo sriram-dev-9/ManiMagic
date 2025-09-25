@@ -57,15 +57,12 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Set placeholder environment variables for build
-ENV NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder-key-for-build
 
 # Build the Next.js application
 RUN npm run build
 
 # Expose port
-EXPOSE 3000
+EXPOSE 8080
 
 # Start the application
 CMD ["npm", "start"]
