@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
   env: {
     PORT: process.env.PORT || '8080',
   },
@@ -16,8 +15,8 @@ const nextConfig: NextConfig = {
             value: 'DENY',
           },
           {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors 'none';",
           },
         ],
       },
