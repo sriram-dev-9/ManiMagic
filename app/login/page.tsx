@@ -45,27 +45,80 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div style={{ 
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(to bottom right, #f9fafb, #e0e7ff)',
+      padding: '3rem 1rem'
+    }}>
+      <div style={{
+        maxWidth: '28rem',
+        width: '100%',
+        marginTop: '2rem',
+        marginBottom: '2rem',
+      }}>
         <div>
-          <div className="mx-auto h-12 w-12 flex items-center justify-center">
-            <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">MM</span>
+          <div style={{
+            margin: '0 auto',
+            height: '3rem',
+            width: '3rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <span style={{
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
+              color: '#4f46e5'
+            }}>MM</span>
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
+          <h2 style={{
+            marginTop: '1.5rem',
+            textAlign: 'center',
+            fontSize: '1.875rem',
+            fontWeight: '800',
+            color: '#111827'
+          }}>
             Sign in to ManiMagic
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+          <p style={{
+            marginTop: '0.5rem',
+            textAlign: 'center',
+            fontSize: '0.875rem',
+            color: '#4b5563'
+          }}>
             Or{' '}
-            <Link href="/signup" className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
+            <Link href="/signup" style={{
+              fontWeight: '500',
+              color: '#4f46e5',
+              textDecoration: 'none'
+            }}>
               create a new account
             </Link>
           </p>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={handleSignIn}>
-          <div className="rounded-md shadow-sm -space-y-px">
+        <form style={{
+            marginTop: '2rem'
+          }} onSubmit={handleSignIn}>
+          <div style={{
+            borderRadius: '0.375rem',
+            boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+          }}>
             <div>
-              <label htmlFor="email-address" className="sr-only">
+              <label htmlFor="email-address" style={{ 
+                position: 'absolute',
+                width: '1px',
+                height: '1px',
+                padding: '0',
+                margin: '-1px',
+                overflow: 'hidden',
+                clip: 'rect(0, 0, 0, 0)',
+                whiteSpace: 'nowrap',
+                borderWidth: '0'
+              }}>
                 Email address
               </label>
               <input
@@ -74,14 +127,36 @@ export default function LoginPage() {
                 type="email"
                 autoComplete="email"
                 required
-                className="relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  borderWidth: '1px',
+                  borderColor: '#d1d5db',
+                  borderTopLeftRadius: '0.375rem',
+                  borderTopRightRadius: '0.375rem',
+                  borderBottomWidth: '0',
+                  backgroundColor: '#ffffff',
+                  color: '#111827',
+                  fontSize: '0.875rem'
+                }}
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-            <div className="relative">
-              <label htmlFor="password" className="sr-only">
+            <div style={{ position: 'relative' }}>
+              <label htmlFor="password" style={{ 
+                position: 'absolute',
+                width: '1px',
+                height: '1px',
+                padding: '0',
+                margin: '-1px',
+                overflow: 'hidden',
+                clip: 'rect(0, 0, 0, 0)',
+                whiteSpace: 'nowrap',
+                borderWidth: '0'
+              }}>
                 Password
               </label>
               <input
@@ -90,70 +165,162 @@ export default function LoginPage() {
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
                 required
-                className="relative block w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  paddingRight: '2.5rem',
+                  borderWidth: '1px',
+                  borderColor: '#d1d5db',
+                  borderBottomLeftRadius: '0.375rem',
+                  borderBottomRightRadius: '0.375rem',
+                  backgroundColor: '#ffffff',
+                  color: '#111827',
+                  fontSize: '0.875rem'
+                }}
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                style={{
+                  position: 'absolute',
+                  top: '0',
+                  bottom: '0',
+                  right: '0',
+                  paddingRight: '0.75rem',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
-                  <FaEyeSlash className="h-4 w-4 text-gray-400" />
+                  <FaEyeSlash style={{ height: '1rem', width: '1rem', color: '#9ca3af' }} />
                 ) : (
-                  <FaEye className="h-4 w-4 text-gray-400" />
+                  <FaEye style={{ height: '1rem', width: '1rem', color: '#9ca3af' }} />
                 )}
               </button>
             </div>
           </div>
 
           {error && (
-            <div className="text-red-600 dark:text-red-400 text-sm text-center">
+            <div style={{
+              color: '#dc2626',
+              fontSize: '0.875rem',
+              textAlign: 'center',
+              marginTop: '0.75rem'
+            }}>
               {error}
             </div>
           )}
 
-          <div>
+          <div style={{ marginTop: '1.5rem' }}>
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                position: 'relative',
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                padding: '0.5rem 1rem',
+                border: 'none',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                color: 'white',
+                backgroundColor: '#4f46e5',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? '0.5' : '1'
+              }}
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </div>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-600" />
+          <div style={{ marginTop: '1.5rem' }}>
+            <div style={{ position: 'relative' }}>
+              <div style={{
+                position: 'absolute',
+                inset: '0',
+                display: 'flex',
+                alignItems: 'center'
+              }}>
+                <div style={{
+                  width: '100%',
+                  borderTopWidth: '1px',
+                  borderColor: '#d1d5db'
+                }} />
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">Or continue with</span>
+              <div style={{
+                position: 'relative',
+                display: 'flex',
+                justifyContent: 'center',
+                fontSize: '0.875rem'
+              }}>
+                <span style={{
+                  padding: '0 0.5rem',
+                  backgroundColor: 'white',
+                  color: '#6b7280'
+                }}>Or continue with</span>
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
+            <div style={{
+              marginTop: '1.5rem',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+              gap: '0.75rem'
+            }}>
               <button
                 type="button"
                 onClick={() => handleProviderSignIn('google')}
                 disabled={loading}
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
+                style={{
+                  width: '100%',
+                  display: 'inline-flex',
+                  justifyContent: 'center',
+                  padding: '0.5rem 1rem',
+                  borderWidth: '1px',
+                  borderColor: '#d1d5db',
+                  borderRadius: '0.375rem',
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                  backgroundColor: 'white',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#6b7280',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? '0.5' : '1'
+                }}
               >
-                <FaGoogle className="h-5 w-5 text-red-500" />
-                <span className="ml-2">Google</span>
+                <FaGoogle style={{ height: '1.25rem', width: '1.25rem', color: '#ef4444' }} />
+                <span style={{ marginLeft: '0.5rem' }}>Google</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleProviderSignIn('github')}
                 disabled={loading}
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
+                style={{
+                  width: '100%',
+                  display: 'inline-flex',
+                  justifyContent: 'center',
+                  padding: '0.5rem 1rem',
+                  borderWidth: '1px',
+                  borderColor: '#d1d5db',
+                  borderRadius: '0.375rem',
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                  backgroundColor: 'white',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#6b7280',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? '0.5' : '1'
+                }}
               >
-                <FaGithub className="h-5 w-5 text-gray-900 dark:text-white" />
-                <span className="ml-2">GitHub</span>
+                <FaGithub style={{ height: '1.25rem', width: '1.25rem', color: '#111827' }} />
+                <span style={{ marginLeft: '0.5rem' }}>GitHub</span>
               </button>
             </div>
           </div>
