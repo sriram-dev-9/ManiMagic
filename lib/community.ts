@@ -139,7 +139,8 @@ export class CommunityManager {
     return projectWithLike
   }
 
-  // Like/unlike a project
+  // Like/unlike a project - COMMENTED OUT
+  /*
   async toggleLike(projectId: string, userId: string): Promise<{ liked: boolean; error?: string }> {
     try {
       // Check if already liked
@@ -188,8 +189,10 @@ export class CommunityManager {
       return { liked: false, error: error instanceof Error ? error.message : 'Unknown error' }
     }
   }
+  */
 
-  // Add a comment
+  // Add a comment - COMMENTED OUT
+  /*
   async addComment(
     projectId: string,
     userId: string,
@@ -221,8 +224,10 @@ export class CommunityManager {
 
     return comment
   }
+  */
 
-  // Get comments for a project
+  // Get comments for a project - COMMENTED OUT
+  /*
   async getComments(projectId: string): Promise<CommentWithProfile[]> {
     const { data: comments, error } = await this.supabase
       .from('comments')
@@ -268,6 +273,7 @@ export class CommunityManager {
 
     return rootComments
   }
+  */
 
   // Record a view - REMOVED
   /* 

@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { community, ProjectWithProfile } from '@/lib/community'
 import Navbar from '../components/Navbar'
 import { useTheme } from '../components/ThemeProvider'
-import { FaHeart, FaRegHeart, FaPlay, FaComment, FaSearch, FaFilter, FaUser, FaTimes, FaPlus } from 'react-icons/fa'
+import { FaPlay, FaSearch, FaFilter, FaUser, FaTimes, FaPlus } from 'react-icons/fa'
 import Link from 'next/link'
 
 export default function CommunityPage() {
@@ -83,6 +83,8 @@ export default function CommunityPage() {
     }
   }
 
+  // handleLike function - COMMENTED OUT
+  /*
   const handleLike = async (projectId: string) => {
     if (!user) return
 
@@ -117,6 +119,7 @@ export default function CommunityPage() {
       console.error('Error toggling like:', error)
     }
   }
+  */
 
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString)
@@ -345,7 +348,7 @@ export default function CommunityPage() {
                 <ProjectCard
                   key={project.id}
                   project={project}
-                  onLike={handleLike}
+                  onLike={() => {}} // handleLike commented out
                   currentTheme={currentTheme}
                   user={user}
                   formatTimeAgo={formatTimeAgo}
@@ -610,8 +613,20 @@ function ProjectCard({
             alignItems: 'center',
             justifyContent: 'space-between'
           }}>
+            {/* Likes and comments temporarily disabled */}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '16px',
+              color: currentTheme.textSecondary,
+              fontSize: '12px',
+              fontStyle: 'italic'
+            }}>
+              Interactions temporarily disabled
+            </div>
+            {/*
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              {/* Like button */}
+              Like button 
               <button
                 onClick={(e) => {
                   e.preventDefault()
@@ -645,7 +660,7 @@ function ProjectCard({
                 {project.likes_count}
               </button>
 
-              {/* Comments */}
+              Comments 
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -657,6 +672,7 @@ function ProjectCard({
                 {project.comments_count}
               </div>
             </div>
+            */}
 
             {/* Tags */}
             {project.tags && project.tags.length > 0 && (
