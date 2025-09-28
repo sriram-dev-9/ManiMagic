@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { community, ProjectWithProfile } from '@/lib/community'
 import Navbar from '../components/Navbar'
 import { useTheme } from '../components/ThemeProvider'
-import { FaHeart, FaRegHeart, FaPlay, FaEye, FaComment, FaSearch, FaFilter, FaUser, FaTimes, FaPlus } from 'react-icons/fa'
+import { FaHeart, FaRegHeart, FaPlay, FaComment, FaSearch, FaFilter, FaUser, FaTimes, FaPlus } from 'react-icons/fa'
 import Link from 'next/link'
 
 export default function CommunityPage() {
@@ -528,23 +528,7 @@ function ProjectCard({
             </div>
           )}
           
-          {/* View count overlay */}
-          <div style={{
-            position: 'absolute',
-            bottom: '8px',
-            right: '8px',
-            background: 'rgba(0, 0, 0, 0.7)',
-            color: 'white',
-            padding: '4px 8px',
-            borderRadius: '4px',
-            fontSize: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px'
-          }}>
-            <FaEye size={10} />
-            {project.views_count}
-          </div>
+          {/* View count overlay removed */}
         </div>
 
         {/* Content */}

@@ -1,12 +1,24 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, use  /* Comments loading functionality temporarily disabled */
+  const loadComments = async () => {
+    console.log('Comments loading functionality temporarily disabled')
+    setComments([])
+    /* Original implementation:
+    try {
+      const commentsData = await community.getComments(projectId)
+      setComments(commentsData)
+    } catch (error) {
+      console.error('Error loading comments:', error)
+    }
+    */
+  }m 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useParams } from 'next/navigation'
 import { community, ProjectWithProfile, CommentWithProfile } from '@/lib/community'
 import Navbar from '../../components/Navbar'
 import { useTheme } from '../../components/ThemeProvider'
-import { FaHeart, FaRegHeart, FaEye, FaComment, FaPlay, FaUser, FaClock, FaCode } from 'react-icons/fa'
+import { FaHeart, FaRegHeart, FaComment, FaPlay, FaUser, FaClock, FaCode } from 'react-icons/fa'
 import Link from 'next/link'
 
 export default function ProjectDetailPage() {
@@ -20,6 +32,7 @@ export default function ProjectDetailPage() {
   const [loading, setLoading] = useState(true)
   const [commentText, setCommentText] = useState('')
   const [submittingComment, setSubmittingComment] = useState(false)
+  const [submittingLike, setSubmittingLike] = useState(false)
   const [showCode, setShowCode] = useState(false)
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
 
@@ -27,7 +40,7 @@ export default function ProjectDetailPage() {
     if (projectId) {
       loadProject()
       loadComments()
-      recordView()
+      // Views recording removed
     }
   }, [projectId, user?.id])
 
@@ -42,25 +55,34 @@ export default function ProjectDetailPage() {
     }
   }
 
+  /* Comments loading functionality temporarily disabled */
   const loadComments = async () => {
+    console.log('Comments loading functionality temporarily disabled')
+    setComments([])
+    /* Original implementation:
     try {
       const commentsData = await community.getComments(projectId)
       setComments(commentsData)
-    } catch (error) {
+    } catch (error) */ {
       console.error('Error loading comments:', error)
     }
   }
 
-  const recordView = async () => {
-    try {
-      await community.recordView(projectId, user?.id)
-    } catch (error) {
-      console.error('Error recording view:', error)
-    }
-  }
+  // recordView function removed
 
   const handleLike = async () => {
-    if (!user || !project) return
+    if (!user || !project) {
+      // If user is not logged in, redirect to login
+      if (!user) {
+        window.location.href = '/login';
+        return;
+      }
+      return;
+    }
+    
+    if (submittingLike) return; // Prevent double-clicks
+    
+    setSubmittingLike(true);
     
     // Optimistic update
     setProject(prev => prev ? {
@@ -72,7 +94,21 @@ export default function ProjectDetailPage() {
     } : null)
 
     try {
-      await community.toggleLike(projectId, user.id)
+      const { liked, error } = await community.toggleLike(projectId, user.id);
+      
+      if (error) {
+        throw new Error(error);
+      }
+      
+      // Just to ensure the UI reflects the actual state from the server
+      setProject(prev => prev ? {
+        ...prev,
+        user_liked: liked,
+        likes_count: liked 
+          ? (prev.user_liked ? prev.likes_count : prev.likes_count + 1)
+          : (prev.user_liked ? prev.likes_count - 1 : prev.likes_count)
+      } : null);
+      
     } catch (error) {
       // Revert on error
       setProject(prev => prev ? {
@@ -82,13 +118,21 @@ export default function ProjectDetailPage() {
           ? prev.likes_count + 1 
           : prev.likes_count - 1
       } : null)
-      console.error('Error toggling like:', error)
+      console.error('Error toggling like:', error);
+      alert('There was an error updating the like. Please try again.');
+    } finally {
+      setSubmittingLike(false);
     }
   }
 
   const handleComment = async (e: React.FormEvent, parentId?: string) => {
     e.preventDefault()
-    if (!user || !commentText.trim()) return
+    if (!user) {
+      window.location.href = '/login';
+      return;
+    }
+    
+    if (!commentText.trim()) return;
 
     setSubmittingComment(true)
     try {
@@ -110,9 +154,12 @@ export default function ProjectDetailPage() {
           ...prev,
           comments_count: prev.comments_count + 1
         } : null)
+      } else {
+        throw new Error('Failed to add comment');
       }
     } catch (error) {
-      console.error('Error adding comment:', error)
+      console.error('Error adding comment:', error);
+      alert('There was an error posting your comment. Please try again.');
     } finally {
       setSubmittingComment(false)
     }
@@ -274,47 +321,44 @@ export default function ProjectDetailPage() {
                 gap: '16px'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                  {/* Like Button */}
+                  {/* Like Button - Temporarily commented out
                   <button
                     onClick={handleLike}
-                    disabled={!user}
+                    disabled={!user || submittingComment || submittingLike}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
                       background: 'none',
                       border: 'none',
-                      cursor: user ? 'pointer' : 'not-allowed',
+                      cursor: user ? (submittingLike || submittingComment ? 'wait' : 'pointer') : 'not-allowed',
                       color: project.user_liked ? '#e53e3e' : currentTheme.textSecondary,
                       fontSize: '16px',
                       padding: '8px 12px',
                       borderRadius: '6px',
-                      transition: 'all 0.2s ease'
+                      transition: 'all 0.2s ease',
+                      position: 'relative',
+                      opacity: submittingLike ? 0.7 : 1
                     }}
                     onMouseEnter={(e) => {
-                      if (user) {
+                      if (user && !submittingComment && !submittingLike) {
                         e.currentTarget.style.background = currentTheme.hoverBg
                       }
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.background = 'none'
                     }}
+                    title={user ? (project.user_liked ? "Unlike this project" : "Like this project") : "Sign in to like"}
                   >
-                    {project.user_liked ? <FaHeart /> : <FaRegHeart />}
-                    {project.likes_count} {project.likes_count === 1 ? 'like' : 'likes'}
+                    {project.user_liked ? 
+                      <FaHeart style={{ color: '#e53e3e', transform: 'scale(1.1)' }} /> : 
+                      <FaRegHeart />
+                    }
+                    <span>{project.likes_count} {project.likes_count === 1 ? 'like' : 'likes'}</span>
                   </button>
+                  */}
 
-                  {/* Views */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    color: currentTheme.textSecondary,
-                    fontSize: '16px'
-                  }}>
-                    <FaEye />
-                    {project.views_count} {project.views_count === 1 ? 'view' : 'views'}
-                  </div>
+                  {/* Views removed */}
 
                   {/* Comments */}
                   <div style={{
@@ -409,108 +453,16 @@ export default function ProjectDetailPage() {
               )}
             </div>
 
-            {/* Comments Section */}
+            {/* Comments Section - Temporarily commented out */}
             <div style={{
               background: currentTheme.cardBg,
               padding: '24px',
               borderRadius: '12px',
-              border: `1px solid ${currentTheme.border}`
+              border: `1px solid ${currentTheme.border}`,
+              textAlign: 'center',
+              color: currentTheme.textSecondary
             }}>
-              <h3 style={{
-                fontSize: '1.5rem',
-                fontWeight: '600',
-                margin: '0 0 20px 0',
-                color: currentTheme.text
-              }}>
-                Comments ({project.comments_count})
-              </h3>
-
-              {/* Add Comment Form */}
-              {user ? (
-                <form onSubmit={(e) => handleComment(e)} style={{ marginBottom: '24px' }}>
-                  <textarea
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    placeholder="Add a comment..."
-                    rows={3}
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      background: currentTheme.inputBg,
-                      border: `1px solid ${currentTheme.border}`,
-                      borderRadius: '8px',
-                      color: currentTheme.text,
-                      fontSize: '14px',
-                      outline: 'none',
-                      resize: 'vertical',
-                      marginBottom: '8px'
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = currentTheme.active}
-                    onBlur={(e) => e.target.style.borderColor = currentTheme.border}
-                  />
-                  <button
-                    type="submit"
-                    disabled={!commentText.trim() || submittingComment}
-                    style={{
-                      padding: '8px 16px',
-                      background: commentText.trim() ? currentTheme.active : currentTheme.hoverBg,
-                      color: commentText.trim() ? 'white' : currentTheme.textSecondary,
-                      border: 'none',
-                      borderRadius: '6px',
-                      cursor: commentText.trim() ? 'pointer' : 'not-allowed',
-                      fontSize: '14px',
-                      fontWeight: '500'
-                    }}
-                  >
-                    {submittingComment ? 'Posting...' : 'Post Comment'}
-                  </button>
-                </form>
-              ) : (
-                <div style={{
-                  padding: '16px',
-                  background: currentTheme.hoverBg,
-                  borderRadius: '8px',
-                  textAlign: 'center',
-                  marginBottom: '24px'
-                }}>
-                  <Link href="/login" style={{ color: currentTheme.active }}>
-                    Sign in to comment
-                  </Link>
-                </div>
-              )}
-
-              {/* Comments List */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {comments.map((comment) => (
-                  <CommentComponent
-                    key={comment.id}
-                    comment={comment}
-                    currentTheme={currentTheme}
-                    formatTimeAgo={formatTimeAgo}
-                    user={user}
-                    onReply={(commentId) => setReplyingTo(commentId)}
-                    replyingTo={replyingTo}
-                    onSubmitReply={(parentId, text) => {
-                      const fakeEvent = { preventDefault: () => {} } as React.FormEvent
-                      const oldCommentText = commentText
-                      setCommentText(text)
-                      handleComment(fakeEvent, parentId).then(() => {
-                        setCommentText(oldCommentText)
-                      })
-                    }}
-                  />
-                ))}
-              </div>
-
-              {comments.length === 0 && (
-                <p style={{
-                  textAlign: 'center',
-                  color: currentTheme.textSecondary,
-                  fontStyle: 'italic'
-                }}>
-                  No comments yet. Be the first to comment!
-                </p>
-              )}
+              Comments functionality temporarily disabled
             </div>
           </div>
 
@@ -605,12 +557,7 @@ export default function ProjectDetailPage() {
                     {project.likes_count}
                   </span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: currentTheme.textSecondary }}>Views</span>
-                  <span style={{ color: currentTheme.text, fontWeight: '500' }}>
-                    {project.views_count}
-                  </span>
-                </div>
+                {/* Views stats removed */}
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: currentTheme.textSecondary }}>Comments</span>
                   <span style={{ color: currentTheme.text, fontWeight: '500' }}>

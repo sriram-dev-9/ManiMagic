@@ -56,7 +56,8 @@ export class CommunityManager {
         query = query.order('likes_count', { ascending: false })
         break
       case 'trending':
-        query = query.order('views_count', { ascending: false })
+        // Now trending just uses likes_count as well since views are removed
+        query = query.order('likes_count', { ascending: false })
         break
       default:
         query = query.order('created_at', { ascending: false })
@@ -140,40 +141,51 @@ export class CommunityManager {
 
   // Like/unlike a project
   async toggleLike(projectId: string, userId: string): Promise<{ liked: boolean; error?: string }> {
-    // Check if already liked
-    const { data: existingLike } = await this.supabase
-      .from('likes')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('project_id', projectId)
-      .single()
-
-    if (existingLike) {
-      // Unlike
-      const { error } = await this.supabase
+    try {
+      // Check if already liked
+      const { data: existingLike, error: checkError } = await this.supabase
         .from('likes')
-        .delete()
+        .select('id')
         .eq('user_id', userId)
         .eq('project_id', projectId)
-
-      if (error) {
-        console.error('Error unliking project:', error)
-        return { liked: true, error: error.message }
+        .single()
+      
+      if (checkError && checkError.code !== 'PGRST116') {
+        // PGRST116 is the error code for "no rows returned"
+        console.error('Error checking like status:', checkError)
+        return { liked: false, error: checkError.message }
       }
 
-      return { liked: false }
-    } else {
-      // Like
-      const { error } = await this.supabase
-        .from('likes')
-        .insert([{ user_id: userId, project_id: projectId }])
+      if (existingLike) {
+        // Unlike
+        const { error } = await this.supabase
+          .from('likes')
+          .delete()
+          .eq('user_id', userId)
+          .eq('project_id', projectId)
 
-      if (error) {
-        console.error('Error liking project:', error)
-        return { liked: false, error: error.message }
+        if (error) {
+          console.error('Error unliking project:', error)
+          return { liked: true, error: error.message }
+        }
+
+        return { liked: false }
+      } else {
+        // Like
+        const { error } = await this.supabase
+          .from('likes')
+          .insert([{ user_id: userId, project_id: projectId }])
+
+        if (error) {
+          console.error('Error liking project:', error)
+          return { liked: false, error: error.message }
+        }
+
+        return { liked: true }
       }
-
-      return { liked: true }
+    } catch (error) {
+      console.error('Unexpected error in toggleLike:', error)
+      return { liked: false, error: error instanceof Error ? error.message : 'Unknown error' }
     }
   }
 
@@ -257,20 +269,12 @@ export class CommunityManager {
     return rootComments
   }
 
-  // Record a view
+  // Record a view - REMOVED
+  /* 
   async recordView(projectId: string, userId?: string, ipAddress?: string): Promise<void> {
-    const { error } = await this.supabase
-      .from('project_views')
-      .upsert([{
-        user_id: userId || null,
-        project_id: projectId,
-        ip_address: ipAddress || null
-      }])
-
-    if (error) {
-      console.error('Error recording view:', error)
-    }
+    // Views functionality removed
   }
+  */
 
   // Search projects
   async searchProjects(
