@@ -1,8 +1,11 @@
-# Use multi-stage build for Python + Node.js
-FROM python:3.11-slim AS python-base
+# Use Node.js base image with Python support
+FROM node:20-bullseye
 
-# Install system dependencies for Manim
+# Install system dependencies for Manim and Python
 RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-dev \
     ffmpeg \
     libcairo2-dev \
     libpango1.0-dev \
@@ -21,8 +24,11 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
+# Create symlink for python command
+RUN ln -s /usr/bin/python3 /usr/bin/python
+
 # Install Python dependencies
-RUN pip install --no-cache-dir \
+RUN pip3 install --no-cache-dir \
     manim \
     numpy \
     scipy \
@@ -34,16 +40,6 @@ RUN pip install --no-cache-dir \
     pycairo \
     setuptools \
     wheel
-
-# Node.js stage
-FROM node:20-alpine AS node-base
-
-# Install Python and system deps for Node.js stage
-RUN apk add --no-cache python3 py3-pip ffmpeg cairo-dev pango-dev gdk-pixbuf-dev
-
-# Copy Python environment from python-base
-COPY --from=python-base /usr/local/lib/python3.11 /usr/local/lib/python3.11
-COPY --from=python-base /usr/local/bin /usr/local/bin
 
 # Set working directory
 WORKDIR /app
