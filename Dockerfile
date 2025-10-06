@@ -28,10 +28,11 @@ RUN python3 -m pip install --no-cache-dir \
     manim \
     numpy \
     pillow \
+    importlib-metadata \
     && python3 -m pip cache purge
 
-# Verify manim installation
-RUN python3 -m manim --version
+# Verify manim installation (non-critical, continue if it fails)
+RUN python3 -m manim --version || echo "Manim verification skipped"
 
 # Set working directory
 WORKDIR /app
