@@ -1,11 +1,8 @@
-# Build stage
-FROM node:20-slim AS builder
+# Use multi-stage build for Python + Node.js
+FROM python:3.11-slim AS python-base
 
-# Install build dependencies
+# Install system dependencies for Manim
 RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
-    python3-dev \
     ffmpeg \
     libcairo2-dev \
     libpango1.0-dev \
@@ -13,59 +10,52 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libpng-dev \
     fonts-dejavu \
+    texlive-latex-base \
+    texlive-fonts-recommended \
+    texlive-extra-utils \
+    texlive-latex-extra \
+    texlive-fonts-extra \
+    texlive-xetex \
+    texlive-plain-generic \
     pkg-config \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Create symlink for python command
-RUN ln -s /usr/bin/python3 /usr/bin/python
-
 # Install Python dependencies
-RUN pip3 install --no-cache-dir \
+RUN pip install --no-cache-dir \
     manim \
     numpy \
+    scipy \
     matplotlib \
     pillow \
-    pycairo
+    opencv-python \
+    jupyter \
+    notebook \
+    pycairo \
+    setuptools \
+    wheel
 
+# Node.js stage
+FROM node:20-alpine AS node-base
+
+# Install Python and system deps for Node.js stage
+RUN apk add --no-cache python3 py3-pip ffmpeg cairo-dev pango-dev gdk-pixbuf-dev
+
+# Copy Python environment from python-base
+COPY --from=python-base /usr/local/lib/python3.11 /usr/local/lib/python3.11
+COPY --from=python-base /usr/local/bin /usr/local/bin
+
+# Set working directory
 WORKDIR /app
 
-# Copy package files and install Node.js dependencies
+# Copy package files
 COPY package*.json ./
-RUN npm ci --only=production && npm cache clean --force
 
-# Copy source code and build
+# Install Node.js dependencies
+RUN npm ci
+
+# Copy source code
 COPY . .
-RUN npm run build
-
-# Production stage
-FROM node:20-slim AS production
-
-# Install only runtime dependencies
-RUN apt-get update && apt-get install -y \
-    python3 \
-    ffmpeg \
-    libcairo2 \
-    libpango-1.0-0 \
-    fonts-dejavu \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /tmp/* \
-    && rm -rf /var/tmp/*
-
-# Create symlink for python command
-RUN ln -s /usr/bin/python3 /usr/bin/python
-
-# Copy Python packages from builder
-COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
-
-WORKDIR /app
-
-# Copy built application and dependencies
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/package*.json ./
 
 # Set environment variables for build and runtime
 ENV NEXT_PUBLIC_SUPABASE_URL=https://zcjvdcndsrguevdpgptw.supabase.co
