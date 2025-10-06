@@ -5,24 +5,40 @@ FROM node:20-bullseye-slim
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
+    python3-dev \
     ffmpeg \
     libcairo2 \
+    libcairo2-dev \
     libpango-1.0-0 \
+    libpangocairo-1.0-0 \
     libglib2.0-0 \
     fonts-dejavu \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /tmp/* \
     && rm -rf /var/tmp/*
 
+# Update pip to latest version
+RUN python3 -m pip install --upgrade pip
+
 # Create symlink for python command
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
-# Install minimal Python dependencies for Manim
-RUN pip3 install --no-cache-dir \
+# Install Python dependencies for Manim with explicit paths
+RUN python3 -m pip install --no-cache-dir \
     manim \
     numpy \
     pillow \
-    && pip3 cache purge
+    pycairo \
+    scipy \
+    && python3 -m pip cache purge
+
+# Verify manim installation
+RUN python3 -m manim --version || echo "Manim installation check failed"
+
+# Add local bin to PATH for Python modules
+ENV PATH="/usr/local/bin:${PATH}"
+ENV PYTHONPATH="/usr/local/lib/python3.9/site-packages:${PYTHONPATH}"
 
 # Set working directory
 WORKDIR /app
