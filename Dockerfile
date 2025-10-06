@@ -1,49 +1,28 @@
-# Use multi-stage build for Python + Node.js
-FROM python:3.11-slim AS python-base
+# Use Node.js base with Debian (not Alpine) for better Python compatibility
+FROM node:20-bullseye-slim
 
-# Install system dependencies for Manim
+# Install system dependencies (minimal set without LaTeX to save space)
 RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
     ffmpeg \
-    libcairo2-dev \
-    libpango1.0-dev \
-    libffi-dev \
-    libjpeg-dev \
-    libpng-dev \
+    libcairo2 \
+    libpango-1.0-0 \
+    libglib2.0-0 \
     fonts-dejavu \
-    texlive-latex-base \
-    texlive-fonts-recommended \
-    texlive-extra-utils \
-    texlive-latex-extra \
-    texlive-fonts-extra \
-    texlive-xetex \
-    texlive-plain-generic \
-    pkg-config \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /tmp/* \
+    && rm -rf /var/tmp/*
 
-# Install Python dependencies
-RUN pip install --no-cache-dir \
+# Create symlink for python command
+RUN ln -s /usr/bin/python3 /usr/bin/python
+
+# Install minimal Python dependencies for Manim
+RUN pip3 install --no-cache-dir \
     manim \
     numpy \
-    scipy \
-    matplotlib \
     pillow \
-    opencv-python \
-    jupyter \
-    notebook \
-    pycairo \
-    setuptools \
-    wheel
-
-# Node.js stage
-FROM node:20-alpine AS node-base
-
-# Install Python and system deps for Node.js stage
-RUN apk add --no-cache python3 py3-pip ffmpeg cairo-dev pango-dev gdk-pixbuf-dev
-
-# Copy Python environment from python-base
-COPY --from=python-base /usr/local/lib/python3.11 /usr/local/lib/python3.11
-COPY --from=python-base /usr/local/bin /usr/local/bin
+    && pip3 cache purge
 
 # Set working directory
 WORKDIR /app
@@ -52,7 +31,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install Node.js dependencies
-RUN npm ci
+RUN npm ci --omit=dev && npm cache clean --force
 
 # Copy source code
 COPY . .
@@ -67,5 +46,5 @@ RUN npm run build
 # Expose port
 EXPOSE 8080
 
-# Start the application using npm
+# Start the application
 CMD ["npm", "run", "start"]
